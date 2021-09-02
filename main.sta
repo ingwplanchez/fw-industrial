@@ -1,0 +1,171 @@
+
+ROM used: 3266 (40%)
+          3311 (40%) including unused fragments
+
+          1 Average locations per line
+          4 Average locations per statement
+
+RAM used: 49 (13%) at main() level
+          70 (19%) worst case
+
+Stack used: 9 worst case (out of 8 total available)
+
+Lines Stmts  %   Files
+----- ----- ---  -----
+  186    45   5  main.c
+   28     0   0  system.h
+  326     0   0  ..\..\..\..\..\..\..\..\..\Program Files (x86)\PICC\devices\16f877a.h
+  348    67   7  ..\..\..\..\..\..\..\..\..\Program Files (x86)\PICC\drivers\LCD.c
+   54     0   0  mensajes.h
+   10     0   0  mensajes.c
+  409   121  13  ..\..\..\..\..\..\..\..\..\Program Files (x86)\PICC\drivers\string.h
+   28     0   0  ..\..\..\..\..\..\..\..\..\Program Files (x86)\PICC\drivers\stddef.h
+   28     0   0  ..\..\..\..\..\..\..\..\..\Program Files (x86)\PICC\drivers\ctype.h
+   13     0   0  drv_lcd.h
+   22     8   1  drv_lcd.c
+  159     0   0  drv_gpio.h
+ 1215   680  74  drv_gpio.c
+----- -----
+ 2826   921 Total
+
+Page ROM  %  RAM   Vol Diff  Functions:
+---- --- --- ---   --- ----  ----------
+0     21   1   1             @delay_ms1
+0      8   0   0             @const76
+ Inline        3   587  6.0  lcd_read_byte
+ Inline        0    59  4.2  lcd_read_nibble
+ Inline        1   172  3.4  lcd_send_nibble
+0     88   3   3   317  4.3  lcd_send_byte
+ Inline        2   624  5.8  lcd_init
+ Inline        4   186  5.5  lcd_gotoxy
+0     53   2   1   272  4.1  lcd_putc
+0      9   0   0             @const194
+0     70   2   3             @PSTRINGC7_93
+0      8   0   0             @const196
+0      9   0   0             @const197
+ Inline        1   346  3.2  drv_gpio_alarmas
+0      9   0   0             @const298
+0      9   0   0             @const299
+ Inline        2   434  3.7  drv_gpio_int_rb0
+0      8   0   0             @const300
+0      8   0   0             @const301
+0      9   0   0             @const302
+0      9   0   0             @const303
+ Inline        1   756  3.8  drv_gpio_int_rb
+0      8   0   0             @const304
+ Inline        1   440  6.5  drv_gpio_status_subir
+ Inline        1   434  6.5  drv_gpio_status_bajar
+ Inline        0   105  2.6  drv_gpio_lcd_menu
+ Inline        1   160  3.7  drv_gpio_menu1
+0    167   5   1  1648  5.3  drv_gpio_menu0
+0      7   0   0             @const306
+0      4   0   0             @const307
+0      6   0   0             @const309
+0      5   0   0             @const310
+0      8   0   0             @const312
+0      7   0   0             @const313
+0      7   0   0             @const315
+0      7   0   0             @const316
+0      4   0   0             @const318
+0      4   0   0             @const319
+0      4   0   0             @const321
+0      5   0   0             @const322
+0     10   0   0             @goto10859
+0    103   3   1  1058  5.3  drv_gpio_submenu_tiempo
+0      5   0   0             @const325
+0      4   0   0             @const326
+0      4   0   0             @const328
+0      5   0   0             @const329
+0      5   0   0             @const331
+0      4   0   0             @const332
+0      4   0   0             @const334
+0      5   0   0             @const335
+0      8   0   0             @goto10921
+0    103   3   1  1058  5.3  drv_gpio_submenu_nivel
+0      6   0   0             @const338
+0      3   0   0             @const339
+0      5   0   0             @const341
+0      4   0   0             @const342
+0      4   0   0             @const344
+0      3   0   0             @const345
+0      4   0   0             @const347
+0      4   0   0             @const348
+0      8   0   0             @goto10982
+0     77   2   1   717  5.2  drv_gpio_submenu_temp
+0      4   0   0             @const351
+0      5   0   0             @const352
+0      3   0   0             @const354
+0      6   0   0             @const355
+0      8   0   0             @const357
+0     20   1   0   233  3.6  drv_gpio_back
+0     12   0   0   221  1.8  drv_gpio_clear
+ Inline        0    50  1.5  drv_gpio_finish1
+ Inline        0    50  1.5  drv_gpio_finish0
+0     11   0   0    78  1.6  drv_gpio_off
+0     12   0   0   163  1.8  drv_gpio_off_nf_ON
+ Inline        0    50  1.5  drv_gpio_NF
+ Inline        0    50  1.5  drv_gpio_STF
+ Inline        0    50  1.5  drv_gpio_STR
+ Inline        0    61  1.9  drv_gpio_RM
+ Inline        0    50  1.5  drv_gpio_BomExt
+ Inline        0   143  2.2  drv_gpio_BomExt_STF
+ Inline        0    78  1.6  drv_gpio_Solenoide12
+1     96   3   1   932  5.3  drv_gpio_lavado
+ Inline        1  2063  9.7  drv_gpio_enjuague
+0     29   1   2             @ITOF
+0    117   4  13             @MULFF
+0     31   1   4             @SFTOI
+1    427  13   1   735  6.3  drv_gpio_centrifugado
+ Inline        0    21  1.0  drv_gpio_automatico2
+ Inline        0   644  7.0  drv_gpio_control_time
+0      9   0   0             @const365
+0     78   2   4             @PSTRINGCN7_93
+ Inline        3             @DIV88
+0    140   4   6             @PRINTF_D_93
+0      9   0   0             @const374
+1    353  11   5   687  6.7  drv_gpio_seg
+0      9   0   0             @const378
+0      7   0   0             @const379
+1    320  10   0    54  1.3  drv_gpio_pulsadores
+ Inline        0   250  4.5  drv_gpio_ticks
+0    204   6   0   372  4.4  drv_gpio_mode_time
+0      9   0   0             @const380
+0      7   0   0             @const381
+0     10   0   0             @const382
+0     53   2   4   292  3.3  drv_gpio_adc_read
+0      8   0   0             @const385
+0      8   0   0             @const397
+ Inline        3   183  4.4  drv_gpio_level
+ Inline        5             @MUL1616
+0     37   1   5             @DIV1616
+ Inline        3   183  4.4  drv_gpio_vaciar
+ Inline        1   302  6.8  drv_gpio_test_nivel
+0      4   0   0     3  0.0  Rb4_Rb7_ISR
+0      4   0   0     3  0.0  RB0_ISR
+0     33   1   1    56  2.1  timer1_isr
+1     67   2   0   533  5.2  MAIN
+0    114   3   0   434  2.4  main_config
+
+Program metrics:
+    Functions               49
+    Statements              921
+    Comments                709
+    Volume (V)              35060
+    Difficilty (D)          179.2
+    Effort to implement (E) 6283150
+    Time to implement (T)   96 hours, 58 minutes
+    Est Delivered Bugs (B)  11
+    Cyclomatic Complexity   136
+    Maintainability (MI)    70
+
+ Segment     Used  Free
+-----------  ----  ----
+00000-00003     4  0  
+00004-0003E    59  0  
+0003F-007FF  1940  45  
+00800-00FFF  1263  785  
+01000-017FF     0  2048  
+01800-01FFF     0  2048  
+
+
+

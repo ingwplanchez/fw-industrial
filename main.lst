@@ -1,0 +1,5162 @@
+CCS PCM C Compiler, Version 4.104, 5967               23-sept.-19 11:21
+
+               Filename: C:\Users\wplanchez\Desktop\Mecatronica Consultores\PROYECTOS\Controlador Digital\Rar\22_VERSION_ESTABLE\FW\main.lst
+
+               ROM used: 3266 words (40%)
+                         Largest free fragment is 2048
+               RAM used: 49 (13%) at main() level
+                         70 (19%) worst case
+               Stack:    9 worst case (8 in main + 1 for interrupts)
+
+*
+0000:  MOVLW  0C
+0001:  MOVWF  0A
+0002:  GOTO   4AC
+0003:  NOP
+0004:  MOVWF  7F
+0005:  SWAPF  03,W
+0006:  CLRF   03
+0007:  MOVWF  21
+0008:  MOVF   0A,W
+0009:  MOVWF  20
+000A:  CLRF   0A
+000B:  MOVF   04,W
+000C:  MOVWF  22
+000D:  MOVF   77,W
+000E:  MOVWF  23
+000F:  MOVF   78,W
+0010:  MOVWF  24
+0011:  MOVF   79,W
+0012:  MOVWF  25
+0013:  MOVF   7A,W
+0014:  MOVWF  26
+0015:  BCF    03.7
+0016:  BCF    03.5
+0017:  BTFSS  0B.3
+0018:  GOTO   01B
+0019:  BTFSC  0B.0
+001A:  GOTO   036
+001B:  BTFSS  0B.4
+001C:  GOTO   01F
+001D:  BTFSC  0B.1
+001E:  GOTO   039
+001F:  MOVLW  8C
+0020:  MOVWF  04
+0021:  BTFSS  00.0
+0022:  GOTO   025
+0023:  BTFSC  0C.0
+0024:  GOTO   03C
+0025:  MOVF   22,W
+0026:  MOVWF  04
+0027:  MOVF   23,W
+0028:  MOVWF  77
+0029:  MOVF   24,W
+002A:  MOVWF  78
+002B:  MOVF   25,W
+002C:  MOVWF  79
+002D:  MOVF   26,W
+002E:  MOVWF  7A
+002F:  MOVF   20,W
+0030:  MOVWF  0A
+0031:  SWAPF  21,W
+0032:  MOVWF  03
+0033:  SWAPF  7F,F
+0034:  SWAPF  7F,W
+0035:  RETFIE
+0036:  BCF    0A.3
+0037:  BCF    0A.4
+0038:  GOTO   18C
+0039:  BCF    0A.3
+003A:  BCF    0A.4
+003B:  GOTO   190
+003C:  BCF    0A.3
+003D:  BCF    0A.4
+003E:  GOTO   194
+.................... #include "system.h" 
+.................... #ifndef __SYSTEM_H 
+.................... #define __SYSTEM_H 
+....................  
+....................    #include <16f877a.h> 
+.................... //////// Standard Header file for the PIC16F877A device //////////////// 
+.................... #device PIC16F877A 
+.................... #list 
+....................  
+....................    #Device adc=10 
+....................    #use delay(clock=4000000) 
+*
+01B5:  MOVLW  57
+01B6:  MOVWF  04
+01B7:  BCF    03.7
+01B8:  MOVF   00,W
+01B9:  BTFSC  03.2
+01BA:  GOTO   1C9
+01BB:  MOVLW  01
+01BC:  MOVWF  78
+01BD:  CLRF   77
+01BE:  DECFSZ 77,F
+01BF:  GOTO   1BE
+01C0:  DECFSZ 78,F
+01C1:  GOTO   1BD
+01C2:  MOVLW  4A
+01C3:  MOVWF  77
+01C4:  DECFSZ 77,F
+01C5:  GOTO   1C4
+01C6:  GOTO   1C7
+01C7:  DECFSZ 00,F
+01C8:  GOTO   1BB
+01C9:  RETURN
+....................    #fuses XT,NOWDT,NOPROTECT,NOLVP,PUT,NODEBUG,BROWNOUT,NOCPD,NOWRT 
+....................     
+....................    //#use fast_io(a) 
+....................    #use fast_io(b) 
+....................    #use fast_io(c) 
+....................    #use fast_io(d) 
+....................    //#use fast_io(e) 
+....................     
+....................    #define Boton1 pin_b7 
+....................    #include <LCD.c> 
+.................... /////////////////////////////////////////////////////////////////////////////// 
+.................... ////                             LCD.C                                     //// 
+.................... ////                 Driver for common LCD modules                         //// 
+.................... ////                                                                       //// 
+.................... ////  lcd_init()   Must be called before any other function.               //// 
+.................... ////                                                                       //// 
+.................... ////  lcd_putc(c)  Will display c on the next position of the LCD.         //// 
+.................... ////                     The following have special meaning:               //// 
+.................... ////                      \f  Clear display                                //// 
+.................... ////                      \n  Go to start of second line                   //// 
+.................... ////                      \b  Move back one position                       //// 
+.................... ////                                                                       //// 
+.................... ////  lcd_gotoxy(x,y) Set write position on LCD (upper left is 1,1)        //// 
+.................... ////                                                                       //// 
+.................... ////  lcd_getc(x,y)   Returns character at position x,y on LCD             //// 
+.................... ////                                                                       //// 
+.................... ////  CONFIGURATION                                                        //// 
+.................... ////  The LCD can be configured in one of two ways: a.) port access or     //// 
+.................... ////  b.) pin access.  Port access requires the entire 7 bit interface     //// 
+.................... ////  connected to one GPIO port, and the data bits (D4:D7 of the LCD)     //// 
+.................... ////  connected to sequential pins on the GPIO.  Pin access                //// 
+.................... ////  has no requirements, all 7 bits of the control interface can         //// 
+.................... ////  can be connected to any GPIO using several ports.                    //// 
+.................... ////                                                                       //// 
+.................... ////  To use port access, #define LCD_DATA_PORT to the SFR location of     //// 
+.................... ////  of the GPIO port that holds the interface, -AND- edit LCD_PIN_MAP    //// 
+.................... ////  of this file to configure the pin order.  If you are using a         //// 
+.................... ////  baseline PIC (PCB), then LCD_OUTPUT_MAP and LCD_INPUT_MAP also must  //// 
+.................... ////  be defined.                                                          //// 
+.................... ////                                                                       //// 
+.................... ////  Example of port access:                                              //// 
+.................... ////     #define LCD_DATA_PORT getenv("SFR:PORTD")                         //// 
+.................... ////                                                                       //// 
+.................... ////  To use pin access, the following pins must be defined:               //// 
+.................... ////     LCD_ENABLE_PIN                                                    //// 
+.................... ////     LCD_RS_PIN                                                        //// 
+.................... ////     LCD_RW_PIN                                                        //// 
+.................... ////     LCD_DATA4                                                         //// 
+.................... ////     LCD_DATA5                                                         //// 
+.................... ////     LCD_DATA6                                                         //// 
+.................... ////     LCD_DATA7                                                         //// 
+.................... ////                                                                       //// 
+.................... ////  Example of pin access:                                               //// 
+.................... ////     #define LCD_ENABLE_PIN  PIN_E0                                    //// 
+.................... ////     #define LCD_RS_PIN      PIN_E1                                    //// 
+.................... ////     #define LCD_RW_PIN      PIN_E2                                    //// 
+.................... ////     #define LCD_DATA4       PIN_D4                                    //// 
+.................... ////     #define LCD_DATA5       PIN_D5                                    //// 
+.................... ////     #define LCD_DATA6       PIN_D6                                    //// 
+.................... ////     #define LCD_DATA7       PIN_D7                                    //// 
+.................... ////                                                                       //// 
+.................... /////////////////////////////////////////////////////////////////////////////// 
+.................... ////        (C) Copyright 1996,2009 Custom Computer Services           //// 
+.................... //// This source code may only be used by licensed users of the CCS C  //// 
+.................... //// compiler.  This source code may only be distributed to other      //// 
+.................... //// licensed users of the CCS C compiler.  No other use, reproduction //// 
+.................... //// or distribution is permitted without written permission.          //// 
+.................... //// Derivative programs created using this software in object code    //// 
+.................... //// form are not restricted in any way.                               //// 
+.................... /////////////////////////////////////////////////////////////////////////// 
+....................  
+.................... // define the pinout. 
+.................... // only required if port access is being used. 
+.................... typedef struct   
+.................... {                            // This structure is overlayed 
+....................    BOOLEAN enable;           // on to an I/O port to gain 
+....................    BOOLEAN rs;               // access to the LCD pins. 
+....................    BOOLEAN rw;               // The bits are allocated from 
+....................    BOOLEAN unused;           // low order up.  ENABLE will 
+....................    int     data : 4;         // be LSB pin of that port. 
+....................   #if defined(__PCD__)       // The port used will be LCD_DATA_PORT. 
+....................    int    reserved: 8; 
+....................   #endif 
+.................... } LCD_PIN_MAP; 
+....................  
+.................... // this is to improve compatability with previous LCD drivers that accepted 
+.................... // a define labeled 'use_portb_lcd' that configured the LCD onto port B. 
+.................... #if ((defined(use_portb_lcd)) && (use_portb_lcd==TRUE)) 
+....................  #define LCD_DATA_PORT getenv("SFR:PORTB") 
+.................... #endif 
+....................  
+.................... #if defined(__PCB__) 
+....................    // these definitions only need to be modified for baseline PICs. 
+....................    // all other PICs use LCD_PIN_MAP or individual LCD_xxx pin definitions. 
+.................... /*                                    EN, RS,   RW,   UNUSED,  DATA  */ 
+....................  const LCD_PIN_MAP LCD_OUTPUT_MAP =  {0,  0,    0,    0,       0}; 
+....................  const LCD_PIN_MAP LCD_INPUT_MAP =   {0,  0,    0,    0,       0xF}; 
+.................... #endif 
+....................  
+.................... ////////////////////// END CONFIGURATION /////////////////////////////////// 
+....................  
+.................... #ifndef LCD_ENABLE_PIN 
+....................    #define lcd_output_enable(x) lcdlat.enable=x 
+....................    #define lcd_enable_tris()   lcdtris.enable=0 
+.................... #else 
+....................    #define lcd_output_enable(x) output_bit(LCD_ENABLE_PIN, x) 
+....................    #define lcd_enable_tris()  output_drive(LCD_ENABLE_PIN) 
+.................... #endif 
+....................  
+.................... #ifndef LCD_RS_PIN 
+....................    #define lcd_output_rs(x) lcdlat.rs=x 
+....................    #define lcd_rs_tris()   lcdtris.rs=0 
+.................... #else 
+....................    #define lcd_output_rs(x) output_bit(LCD_RS_PIN, x) 
+....................    #define lcd_rs_tris()  output_drive(LCD_RS_PIN) 
+.................... #endif 
+....................  
+.................... #ifndef LCD_RW_PIN 
+....................    #define lcd_output_rw(x) lcdlat.rw=x 
+....................    #define lcd_rw_tris()   lcdtris.rw=0 
+.................... #else 
+....................    #define lcd_output_rw(x) output_bit(LCD_RW_PIN, x) 
+....................    #define lcd_rw_tris()  output_drive(LCD_RW_PIN) 
+.................... #endif 
+....................  
+.................... // original version of this library incorrectly labeled LCD_DATA0 as LCD_DATA4, 
+.................... // LCD_DATA1 as LCD_DATA5, and so on.  this block of code makes the driver 
+.................... // compatible with any code written for the original library 
+.................... #if (defined(LCD_DATA0) && defined(LCD_DATA1) && defined(LCD_DATA2) && defined(LCD_DATA3) && !defined(LCD_DATA4) && !defined(LCD_DATA5) && !defined(LCD_DATA6) && !defined(LCD_DATA7)) 
+....................    #define  LCD_DATA4    LCD_DATA0 
+....................    #define  LCD_DATA5    LCD_DATA1 
+....................    #define  LCD_DATA6    LCD_DATA2 
+....................    #define  LCD_DATA7    LCD_DATA3 
+.................... #endif 
+....................  
+.................... #ifndef LCD_DATA4 
+.................... #ifndef LCD_DATA_PORT 
+....................    #if defined(__PCB__) 
+....................       #define LCD_DATA_PORT      0x06     //portb 
+....................       #define set_tris_lcd(x)   set_tris_b(x) 
+....................    #else 
+....................      #if defined(PIN_D0) 
+....................       #define LCD_DATA_PORT      getenv("SFR:PORTD")     //portd 
+....................      #else 
+....................       #define LCD_DATA_PORT      getenv("SFR:PORTB")     //portb 
+....................      #endif 
+....................    #endif    
+.................... #endif 
+....................  
+.................... #if defined(__PCB__) 
+....................    LCD_PIN_MAP lcd, lcdlat; 
+....................    #byte lcd = LCD_DATA_PORT 
+....................    #byte lcdlat = LCD_DATA_PORT 
+.................... #elif defined(__PCM__) 
+....................    LCD_PIN_MAP lcd, lcdlat, lcdtris; 
+....................    #byte lcd = LCD_DATA_PORT 
+....................    #byte lcdlat = LCD_DATA_PORT 
+....................    #byte lcdtris = LCD_DATA_PORT+0x80 
+.................... #elif defined(__PCH__) 
+....................    LCD_PIN_MAP lcd, lcdlat, lcdtris; 
+....................    #byte lcd = LCD_DATA_PORT 
+....................    #byte lcdlat = LCD_DATA_PORT+9 
+....................    #byte lcdtris = LCD_DATA_PORT+0x12 
+.................... #elif defined(__PCD__) 
+....................    LCD_PIN_MAP lcd, lcdlat, lcdtris; 
+....................    #word lcd = LCD_DATA_PORT 
+....................    #word lcdlat = LCD_DATA_PORT+2 
+....................    #word lcdtris = LCD_DATA_PORT-0x02 
+.................... #endif 
+.................... #endif   //LCD_DATA4 not defined 
+....................  
+.................... #ifndef LCD_TYPE 
+....................    #define LCD_TYPE 2           // 0=5x7, 1=5x10, 2=2 lines 
+.................... #endif 
+....................  
+.................... #ifndef LCD_LINE_TWO 
+....................    #define LCD_LINE_TWO 0x40    // LCD RAM address for the second line 
+.................... #endif 
+....................  
+.................... BYTE const LCD_INIT_STRING[4] = {0x20 | (LCD_TYPE << 2), 0xc, 1, 6}; 
+....................                              // These bytes need to be sent to the LCD 
+....................                              // to start it up. 
+....................  
+.................... BYTE lcd_read_nibble(void); 
+....................  
+.................... BYTE lcd_read_byte(void) 
+.................... { 
+....................    BYTE low,high; 
+....................  
+....................  #if defined(__PCB__) 
+....................    set_tris_lcd(LCD_INPUT_MAP); 
+....................  #else 
+....................   #if (defined(LCD_DATA4) && defined(LCD_DATA5) && defined(LCD_DATA6) && defined(LCD_DATA7)) 
+....................    output_float(LCD_DATA4); 
+....................    output_float(LCD_DATA5); 
+....................    output_float(LCD_DATA6); 
+....................    output_float(LCD_DATA7); 
+....................   #else 
+....................    lcdtris.data = 0xF; 
+*
+01CB:  MOVLW  0F
+01CC:  BSF    03.5
+01CD:  ANDWF  08,W
+01CE:  IORLW  F0
+01CF:  MOVWF  08
+....................   #endif 
+....................  #endif 
+....................          
+....................    lcd_output_rw(1); 
+01D0:  BCF    03.5
+01D1:  BSF    08.2
+....................    delay_cycles(1); 
+01D2:  NOP
+....................    lcd_output_enable(1); 
+01D3:  BSF    08.0
+....................    delay_cycles(1); 
+01D4:  NOP
+....................    high = lcd_read_nibble(); 
+*
+01DA:  MOVF   78,W
+01DB:  MOVWF  5E
+....................        
+....................    lcd_output_enable(0); 
+01DC:  BCF    08.0
+....................    delay_cycles(1); 
+01DD:  NOP
+....................    lcd_output_enable(1); 
+01DE:  BSF    08.0
+....................    delay_us(1); 
+01DF:  NOP
+....................    low = lcd_read_nibble(); 
+*
+01E5:  MOVF   78,W
+01E6:  MOVWF  5D
+....................        
+....................    lcd_output_enable(0); 
+01E7:  BCF    08.0
+....................  
+....................  #if defined(__PCB__) 
+....................    set_tris_lcd(LCD_INPUT_MAP); 
+....................  #else 
+....................   #if (defined(LCD_DATA4) && defined(LCD_DATA5) && defined(LCD_DATA6) && defined(LCD_DATA7)) 
+....................    output_drive(LCD_DATA4); 
+....................    output_drive(LCD_DATA5); 
+....................    output_drive(LCD_DATA6); 
+....................    output_drive(LCD_DATA7); 
+....................   #else 
+....................    lcdtris.data = 0x0; 
+01E8:  MOVLW  0F
+01E9:  BSF    03.5
+01EA:  ANDWF  08,W
+01EB:  MOVWF  08
+....................   #endif 
+....................  #endif 
+....................  
+....................    return( (high<<4) | low); 
+01EC:  BCF    03.5
+01ED:  SWAPF  5E,W
+01EE:  MOVWF  77
+01EF:  MOVLW  F0
+01F0:  ANDWF  77,F
+01F1:  MOVF   77,W
+01F2:  IORWF  5D,W
+01F3:  MOVWF  78
+.................... } 
+....................  
+.................... BYTE lcd_read_nibble(void) 
+.................... { 
+....................   #if (defined(LCD_DATA4) && defined(LCD_DATA5) && defined(LCD_DATA6) && defined(LCD_DATA7)) 
+....................    BYTE n = 0x00; 
+....................  
+....................    /* Read the data port */ 
+....................    n |= input(LCD_DATA4); 
+....................    n |= input(LCD_DATA5) << 1; 
+....................    n |= input(LCD_DATA6) << 2; 
+....................    n |= input(LCD_DATA7) << 3; 
+....................     
+....................    return(n); 
+....................   #else 
+....................    return(lcd.data); 
+*
+01D5:  MOVF   08,W
+01D6:  MOVWF  77
+01D7:  SWAPF  08,W
+01D8:  ANDLW  0F
+01D9:  MOVWF  78
+*
+01E0:  MOVF   08,W
+01E1:  MOVWF  77
+01E2:  SWAPF  08,W
+01E3:  ANDLW  0F
+01E4:  MOVWF  78
+....................   #endif 
+.................... } 
+....................  
+.................... void lcd_send_nibble(BYTE n) 
+.................... { 
+....................   #if (defined(LCD_DATA4) && defined(LCD_DATA5) && defined(LCD_DATA6) && defined(LCD_DATA7)) 
+....................    /* Write to the data port */ 
+....................    output_bit(LCD_DATA4, bit_test(n, 0)); 
+....................    output_bit(LCD_DATA5, bit_test(n, 1)); 
+....................    output_bit(LCD_DATA6, bit_test(n, 2)); 
+....................    output_bit(LCD_DATA7, bit_test(n, 3)); 
+....................   #else       
+....................    lcdlat.data = n; 
+*
+0206:  SWAPF  5E,W
+0207:  ANDLW  F0
+0208:  MOVWF  77
+0209:  MOVLW  0F
+020A:  ANDWF  08,W
+020B:  IORWF  77,W
+020C:  MOVWF  08
+*
+0216:  SWAPF  5E,W
+0217:  ANDLW  F0
+0218:  MOVWF  77
+0219:  MOVLW  0F
+021A:  ANDWF  08,W
+021B:  IORWF  77,W
+021C:  MOVWF  08
+*
+0266:  SWAPF  5E,W
+0267:  ANDLW  F0
+0268:  MOVWF  77
+0269:  MOVLW  0F
+026A:  ANDWF  08,W
+026B:  IORWF  77,W
+026C:  MOVWF  08
+*
+0278:  SWAPF  5E,W
+0279:  ANDLW  F0
+027A:  MOVWF  77
+027B:  MOVLW  0F
+027C:  ANDWF  08,W
+027D:  IORWF  77,W
+027E:  MOVWF  08
+....................   #endif 
+....................        
+....................    delay_cycles(1); 
+*
+020D:  NOP
+*
+021D:  NOP
+*
+026D:  NOP
+*
+027F:  NOP
+....................    lcd_output_enable(1); 
+*
+020E:  BSF    08.0
+*
+021E:  BSF    08.0
+*
+026E:  BSF    08.0
+*
+0280:  BSF    08.0
+....................    delay_us(2); 
+*
+020F:  GOTO   210
+*
+021F:  GOTO   220
+*
+026F:  GOTO   270
+*
+0281:  GOTO   282
+....................    lcd_output_enable(0); 
+*
+0210:  BCF    08.0
+*
+0220:  BCF    08.0
+*
+0270:  BCF    08.0
+*
+0282:  BCF    08.0
+.................... } 
+....................  
+.................... void lcd_send_byte(BYTE address, BYTE n) 
+.................... { 
+....................    lcd_output_rs(0); 
+*
+01CA:  BCF    08.1
+....................    while ( bit_test(lcd_read_byte(),7) ) ; 
+*
+01F4:  MOVF   78,W
+01F5:  MOVWF  5D
+01F6:  BTFSC  5D.7
+01F7:  GOTO   1CB
+....................    lcd_output_rs(address); 
+01F8:  BTFSS  5B.0
+01F9:  BCF    08.1
+01FA:  BTFSC  5B.0
+01FB:  BSF    08.1
+....................    delay_cycles(1); 
+01FC:  NOP
+....................    lcd_output_rw(0); 
+01FD:  BCF    08.2
+....................    delay_cycles(1); 
+01FE:  NOP
+....................    lcd_output_enable(0); 
+01FF:  BCF    08.0
+....................    lcd_send_nibble(n >> 4); 
+0200:  SWAPF  5C,W
+0201:  MOVWF  5D
+0202:  MOVLW  0F
+0203:  ANDWF  5D,F
+0204:  MOVF   5D,W
+0205:  MOVWF  5E
+....................    lcd_send_nibble(n & 0xf); 
+*
+0211:  MOVF   5C,W
+0212:  ANDLW  0F
+0213:  MOVWF  5D
+0214:  MOVF   5D,W
+0215:  MOVWF  5E
+.................... } 
+*
+0221:  RETURN
+....................  
+.................... void lcd_init(void)  
+.................... { 
+....................    BYTE i; 
+....................  
+....................  #if defined(__PCB__) 
+....................    set_tris_lcd(LCD_OUTPUT_MAP); 
+....................  #else 
+....................   #if (defined(LCD_DATA4) && defined(LCD_DATA5) && defined(LCD_DATA6) && defined(LCD_DATA7)) 
+....................    output_drive(LCD_DATA4); 
+....................    output_drive(LCD_DATA5); 
+....................    output_drive(LCD_DATA6); 
+....................    output_drive(LCD_DATA7); 
+....................   #else 
+....................    lcdtris.data = 0x0; 
+*
+0250:  MOVLW  0F
+0251:  BSF    03.5
+0252:  ANDWF  08,W
+0253:  MOVWF  08
+....................   #endif 
+....................    lcd_enable_tris(); 
+0254:  BCF    08.0
+....................    lcd_rs_tris(); 
+0255:  BCF    08.1
+....................    lcd_rw_tris(); 
+0256:  BCF    08.2
+....................  #endif 
+....................  
+....................    lcd_output_rs(0); 
+0257:  BCF    03.5
+0258:  BCF    08.1
+....................    lcd_output_rw(0); 
+0259:  BCF    08.2
+....................    lcd_output_enable(0); 
+025A:  BCF    08.0
+....................      
+....................    delay_ms(15); 
+025B:  MOVLW  0F
+025C:  MOVWF  57
+025D:  CALL   1B5
+....................    for(i=1;i<=3;++i) 
+025E:  MOVLW  01
+025F:  MOVWF  4C
+0260:  MOVF   4C,W
+0261:  SUBLW  03
+0262:  BTFSS  03.0
+0263:  GOTO   276
+....................    { 
+....................        lcd_send_nibble(3); 
+0264:  MOVLW  03
+0265:  MOVWF  5E
+....................        delay_ms(5); 
+*
+0271:  MOVLW  05
+0272:  MOVWF  57
+0273:  CALL   1B5
+....................    } 
+0274:  INCF   4C,F
+0275:  GOTO   260
+....................      
+....................    lcd_send_nibble(2); 
+0276:  MOVLW  02
+0277:  MOVWF  5E
+....................    for(i=0;i<=3;++i) 
+*
+0283:  CLRF   4C
+0284:  MOVF   4C,W
+0285:  SUBLW  03
+0286:  BTFSS  03.0
+0287:  GOTO   291
+....................       lcd_send_byte(0,LCD_INIT_STRING[i]); 
+0288:  MOVF   4C,W
+0289:  CALL   03F
+028A:  MOVWF  4D
+028B:  CLRF   5B
+028C:  MOVF   4D,W
+028D:  MOVWF  5C
+028E:  CALL   1CA
+028F:  INCF   4C,F
+0290:  GOTO   284
+.................... } 
+....................  
+.................... void lcd_gotoxy(BYTE x, BYTE y) 
+.................... { 
+....................    BYTE address; 
+....................  
+....................    if(y!=1) 
+*
+0367:  DECFSZ 58,W
+0368:  GOTO   36A
+0369:  GOTO   36D
+*
+0983:  DECFSZ 58,W
+0984:  GOTO   186
+0985:  GOTO   189
+*
+0A6E:  DECFSZ 58,W
+0A6F:  GOTO   271
+0A70:  GOTO   274
+....................       address=LCD_LINE_TWO; 
+*
+036A:  MOVLW  40
+036B:  MOVWF  59
+*
+0986:  MOVLW  40
+0987:  MOVWF  59
+*
+0A71:  MOVLW  40
+0A72:  MOVWF  59
+....................    else 
+*
+036C:  GOTO   36E
+*
+0988:  GOTO   18A
+*
+0A73:  GOTO   275
+....................       address=0; 
+*
+036D:  CLRF   59
+*
+0989:  CLRF   59
+*
+0A74:  CLRF   59
+....................       
+....................    address+=x-1; 
+*
+036E:  MOVLW  01
+036F:  SUBWF  57,W
+0370:  ADDWF  59,F
+*
+098A:  MOVLW  01
+098B:  SUBWF  57,W
+098C:  ADDWF  59,F
+*
+0A75:  MOVLW  01
+0A76:  SUBWF  57,W
+0A77:  ADDWF  59,F
+....................    lcd_send_byte(0,0x80|address); 
+*
+0371:  MOVF   59,W
+0372:  IORLW  80
+0373:  MOVWF  5A
+0374:  CLRF   5B
+0375:  MOVF   5A,W
+0376:  MOVWF  5C
+0377:  CALL   1CA
+*
+098D:  MOVF   59,W
+098E:  IORLW  80
+098F:  MOVWF  5A
+0990:  CLRF   5B
+0991:  MOVF   5A,W
+0992:  MOVWF  5C
+0993:  BCF    0A.3
+0994:  CALL   1CA
+0995:  BSF    0A.3
+*
+0A78:  MOVF   59,W
+0A79:  IORLW  80
+0A7A:  MOVWF  5A
+0A7B:  CLRF   5B
+0A7C:  MOVF   5A,W
+0A7D:  MOVWF  5C
+0A7E:  BCF    0A.3
+0A7F:  CALL   1CA
+0A80:  BSF    0A.3
+.................... } 
+....................  
+.................... void lcd_putc(char c) 
+.................... { 
+....................    switch (c) 
+....................    { 
+*
+0350:  MOVF   56,W
+0351:  XORLW  0C
+0352:  BTFSC  03.2
+0353:  GOTO   35B
+0354:  XORLW  06
+0355:  BTFSC  03.2
+0356:  GOTO   363
+0357:  XORLW  02
+0358:  BTFSC  03.2
+0359:  GOTO   379
+035A:  GOTO   37E
+....................       case '\f'   :  lcd_send_byte(0,1); 
+035B:  CLRF   5B
+035C:  MOVLW  01
+035D:  MOVWF  5C
+035E:  CALL   1CA
+....................                      delay_ms(2); 
+035F:  MOVLW  02
+0360:  MOVWF  57
+0361:  CALL   1B5
+....................                      break; 
+0362:  GOTO   384
+....................                       
+....................       case '\n'   : lcd_gotoxy(1,2);        break; 
+0363:  MOVLW  01
+0364:  MOVWF  57
+0365:  MOVLW  02
+0366:  MOVWF  58
+*
+0378:  GOTO   384
+....................       
+....................       case '\b'   : lcd_send_byte(0,0x10);  break; 
+0379:  CLRF   5B
+037A:  MOVLW  10
+037B:  MOVWF  5C
+037C:  CALL   1CA
+037D:  GOTO   384
+....................       
+....................       default     : lcd_send_byte(1,c);     break; 
+037E:  MOVLW  01
+037F:  MOVWF  5B
+0380:  MOVF   56,W
+0381:  MOVWF  5C
+0382:  CALL   1CA
+0383:  GOTO   384
+....................    } 
+.................... } 
+0384:  RETURN
+....................   
+.................... char lcd_getc(BYTE x, BYTE y) 
+.................... { 
+....................    char value; 
+....................  
+....................    lcd_gotoxy(x,y); 
+....................    while ( bit_test(lcd_read_byte(),7) ); // wait until busy flag is low 
+....................    lcd_output_rs(1); 
+....................    value = lcd_read_byte(); 
+....................    lcd_output_rs(0); 
+....................     
+....................    return(value); 
+.................... } 
+....................  
+....................    #include <mensajes.h> 
+.................... #ifndef __MENSAJES_H_ 
+.................... #define __MENSAJES_H_ 
+....................  
+.................... #include "system.h" 
+.................... #ifndef __SYSTEM_H 
+.................... #define __SYSTEM_H 
+....................  
+....................    #include <16f877a.h> 
+....................    #Device adc=10 
+....................    #use delay(clock=4000000) 
+....................    #fuses XT,NOWDT,NOPROTECT,NOLVP,PUT,NODEBUG,BROWNOUT,NOCPD,NOWRT 
+....................     
+....................    //#use fast_io(a) 
+....................    #use fast_io(b) 
+....................    #use fast_io(c) 
+....................    #use fast_io(d) 
+....................    //#use fast_io(e) 
+....................     
+....................    #define Boton1 pin_b7 
+....................    #include <LCD.c> 
+....................    #include <mensajes.h> 
+....................    #include <mensajes.c> 
+....................     
+....................    #include <drv_lcd.h> 
+....................    #include <drv_lcd.c> 
+....................    #include <drv_gpio.h> 
+....................    #include <drv_gpio.c>  
+....................    #include <system.c> 
+....................  
+.................... #endif 
+....................  
+....................  
+....................    #define MODO               "MODO\n"  
+....................    #define MODO_              "MODO<\n"  
+....................       #define LAVADO          "LAVADO\n" 
+....................       #define LAVADO_         "LAVADO<\n" 
+....................       #define CENTRIFUGADO    "CENTRIFUGADO\n" 
+....................       #define CENTRIFUGADO_   "CENTRIFUGADO<\n" 
+....................       #define AUTOM            "AUTOMATICO\n" 
+....................       #define AUTOM_           "AUTOMATICO<\n" 
+....................        
+....................    #define TEMPERATURA        "TEMPERATURA\n"  
+....................    #define TEMPERATURA_       "TEMPERATURA<\n"  
+....................       #define FRIA            "FRIA\n" 
+....................       #define FRIA_           "FRIA<\n" 
+....................       #define CALIENTE         "CALIENTE\n" 
+....................       #define CALIENTE_       "CALIENTE<\n" 
+....................       #define TEMP_AMBOS      "FRIA/CALIENTE\n" 
+....................       #define TEMP_AMBOS_     "FRIA/CALIENTE<\n"   
+....................        
+....................    #define NIVEL              "NIVEL\n"  
+....................    #define NIVEL_             "NIVEL<\n" 
+....................       #define MUY_BAJO        "MUY BAJO\n" 
+....................       #define MUY_BAJO_       "MUY BAJO<\n" 
+....................       #define BAJO            "BAJO\n" 
+....................       #define BAJO_           "BAJO<\n" 
+....................       #define MEDIO           "MEDIO\n" 
+....................       #define MEDIO_          "MEDIO<\n" 
+....................       #define ALTO            "ALTO\n" 
+....................       #define ALTO_           "ALTO<\n" 
+....................       #define TIEMPO             "TIEMPO\n"  
+....................        
+....................    #define TIEMPO_            "TIEMPO<\n"  
+....................       #define T_25MIN         "25 MIN\n" 
+....................       #define T_25MIN_        "25 MIN<\n" 
+....................       #define T_35MIN         "30 MIN\n" 
+....................       #define T_35MIN_        "30 MIN<\n" 
+....................       #define T_45MIN         "45 MIN\n" 
+....................       #define T_45MIN_        "45 MIN<\n" 
+....................       #define T_55MIN         "55 MIN\n" 
+....................       #define T_55MIN_        "55 MIN<\n" 
+....................       #define T_SELECCION     "\fTIEMPO:%2dm\n" 
+....................    
+....................    #define ATRAS              "ATRAS<\n"   
+....................    #define EMPRESA            "EMPRESA\n"  
+....................    #define EMPRESA_           "EMPRESA<\n"  
+....................     
+.................... //char const * Mensaje_leer(MensajeID mensajeID); 
+....................  
+.................... #endif 
+....................  
+....................    #include <mensajes.c> 
+.................... #include "system.h" 
+.................... #ifndef __SYSTEM_H 
+.................... #define __SYSTEM_H 
+....................  
+....................    #include <16f877a.h> 
+....................    #Device adc=10 
+....................    #use delay(clock=4000000) 
+....................    #fuses XT,NOWDT,NOPROTECT,NOLVP,PUT,NODEBUG,BROWNOUT,NOCPD,NOWRT 
+....................     
+....................    //#use fast_io(a) 
+....................    #use fast_io(b) 
+....................    #use fast_io(c) 
+....................    #use fast_io(d) 
+....................    //#use fast_io(e) 
+....................     
+....................    #define Boton1 pin_b7 
+....................    #include <LCD.c> 
+....................    #include <mensajes.h> 
+....................    #include <mensajes.c> 
+....................     
+....................    #include <drv_lcd.h> 
+....................    #include <drv_lcd.c> 
+....................    #include <drv_gpio.h> 
+....................    #include <drv_gpio.c>  
+....................    #include <system.c> 
+....................  
+.................... #endif 
+....................  
+.................... #include "string.h" 
+.................... //////////////////////////////////////////////////////////////////////////// 
+.................... ////        (C) Copyright 1996,2008 Custom Computer Services            //// 
+.................... //// This source code may only be used by licensed users of the CCS C   //// 
+.................... //// compiler.  This source code may only be distributed to other       //// 
+.................... //// licensed users of the CCS C compiler.  No other use, reproduction  //// 
+.................... //// or distribution is permitted without written permission.           //// 
+.................... //// Derivative programs created using this software in object code     //// 
+.................... //// form are not restricted in any way.                                //// 
+.................... //////////////////////////////////////////////////////////////////////////// 
+....................  
+.................... #ifndef _STRING 
+.................... #define _STRING 
+.................... #include <stddef.h> 
+.................... /////////////////////////////////////////////////////////////////////////// 
+.................... ////        (C) Copyright 1996,2003 Custom Computer Services           //// 
+.................... //// This source code may only be used by licensed users of the CCS C  //// 
+.................... //// compiler.  This source code may only be distributed to other      //// 
+.................... //// licensed users of the CCS C compiler.  No other use, reproduction //// 
+.................... //// or distribution is permitted without written permission.          //// 
+.................... //// Derivative programs created using this software in object code    //// 
+.................... //// form are not restricted in any way.                               //// 
+.................... /////////////////////////////////////////////////////////////////////////// 
+....................  
+.................... #ifndef _STDDEF 
+....................  
+.................... #define _STDDEF 
+....................  
+.................... #if sizeof(unsigned int8 *)==1 
+.................... #define ptrdiff_t unsigned int8 
+.................... #else 
+.................... #define ptrdiff_t unsigned int16 
+.................... #endif 
+....................  
+.................... #define size_t unsigned int8 
+.................... #define wchar_t char 
+.................... #define NULL 0 
+....................  
+.................... #define offsetof(s,f) (offsetofbit(s,f)/8) 
+....................  
+.................... #endif 
+....................  
+.................... #include <ctype.h> 
+.................... //////////////////////////////////////////////////////////////////////////// 
+.................... ////        (C) Copyright 1996,2003 Custom Computer Services            //// 
+.................... //// This source code may only be used by licensed users of the CCS C   //// 
+.................... //// compiler.  This source code may only be distributed to other       //// 
+.................... //// licensed users of the CCS C compiler.  No other use, reproduction  //// 
+.................... //// or distribution is permitted without written permission.           //// 
+.................... //// Derivative programs created using this software in object code     //// 
+.................... //// form are not restricted in any way.                                //// 
+.................... //////////////////////////////////////////////////////////////////////////// 
+....................  
+.................... #ifndef _CTYPE 
+.................... #define _CTYPE 
+....................  
+.................... #define islower(x)  isamong(x,"abcdefghijklmnopqrstuvwxyz") 
+.................... #define isupper(x)  isamong(x,"ABCDEFGHIJKLMNOPQRSTUVWXYZ") 
+.................... #define isalnum(x)  isamong(x,"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz") 
+.................... #define isalpha(x)  isamong(x,"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz") 
+.................... #define isdigit(x)  isamong(x,"0123456789") 
+.................... #define isspace(x)  ((x)==' ') 
+.................... #define isxdigit(x) isamong(x,"0123456789ABCDEFabcdef") 
+.................... #define iscntrl(x)  ((x)<' ') 
+.................... #define isprint(x)  ((x)>=' ') 
+.................... #define isgraph(x)  ((x)>' ') 
+.................... #define ispunct(x)  (((x)>' ')&&!isalnum(x)) 
+....................  
+.................... #endif 
+....................  
+....................  
+....................  
+....................  
+....................  
+.................... ////////////////////////////////////////////// 
+.................... //// Uncomment the following define to    //// 
+.................... //// allow some functions to use a        //// 
+.................... //// quicker algorithm, but use more ROM  //// 
+.................... ////                                      //// 
+.................... //// #define FASTER_BUT_MORE_ROM          //// 
+.................... ////////////////////////////////////////////// 
+....................  
+....................  
+....................  
+.................... /*Copying functions*/ 
+.................... /* standard template: 
+....................    void *memmove(void *s1, void *s2, size_t n). 
+....................    Copies max of n characters safely (not following ending '\0') 
+....................    from s2 in s1; if s2 has less than n characters, appends 0 */ 
+....................  
+.................... char *memmove(void *s1,char *s2,size_t n) 
+.................... { 
+....................    char *sc1; 
+....................    char *sc2; 
+....................    sc1=s1; 
+....................    sc2=s2; 
+....................    if(sc2<sc1 && sc1 <sc2 +n) 
+....................       for(sc1+=n,sc2+=n;0<n;--n) 
+....................          *--sc1=*--sc2; 
+....................    else 
+....................       for(;0<n;--n) 
+....................          *sc1++=*sc2++; 
+....................   return s1; 
+....................   } 
+....................  
+.................... /* Standard template: char *strcpy(char *s1, const char *s2) 
+....................    copies the string s2 including the null character to s1. 
+....................    This is a compiler built in to handle the different address 
+....................    spaces */ 
+....................  
+.................... #define strcopy strcpy 
+....................  
+.................... /* standard template: 
+....................    char *strncpy(char *s1, const char *s2, size_t n). 
+....................    Copies max of n characters (not following ending '\0') 
+....................    from s2 in s1; if s2 has less than n characters, appends 0 */ 
+....................  
+.................... char *strncpy(char *s1, char *s2, size_t n) 
+.................... { 
+....................   char *s; 
+....................  
+....................   for (s = s1; n > 0 && *s2 != '\0'; n--) 
+....................      *s++ = *s2++; 
+....................   for (; n > 0; n--) 
+....................      *s++ = '\0'; 
+....................  
+....................   return(s1); 
+.................... } 
+.................... /***********************************************************/ 
+....................  
+.................... /*concatenation functions*/ 
+.................... /* standard template: char *strcat(char *s1, const char *s2) 
+.................... appends s2 to s1*/ 
+....................  
+.................... char *strcat(char *s1, char *s2) 
+.................... { 
+....................    char *s; 
+....................  
+....................    for (s = s1; *s != '\0'; ++s); 
+....................    while(*s2 != '\0') 
+....................    { 
+....................       *s = *s2; 
+....................       ++s; 
+....................       ++s2; 
+....................    } 
+....................  
+....................    *s = '\0'; 
+....................    return(s1); 
+.................... } 
+.................... /* standard template: char *strncat(char *s1, char *s2,size_t n) 
+.................... appends not more than n characters from s2 to s1*/ 
+....................  
+.................... char *strncat(char *s1, char *s2, size_t n) 
+.................... { 
+....................    char *s; 
+....................  
+....................    for (s = s1; *s != '\0'; ++s); 
+....................    while(*s2 != '\0' && 0<n) 
+....................    { 
+....................       *s = *s2; 
+....................       ++s; 
+....................       ++s2; 
+....................       --n; 
+....................    } 
+....................  
+....................    *s = '\0'; 
+....................    return(s1); 
+.................... } 
+....................  
+.................... /***********************************************************/ 
+....................  
+....................  
+.................... /*comparison functions*/ 
+.................... /* standard template: signed int memcmp(void *s1, void *s2). 
+....................    Compares s1 & s2; returns -1 if s1<s2, 0 if s1=s2, 1 if s1>s2 */ 
+....................  
+.................... signed int8 memcmp(void * s1,char *s2,size_t n) 
+.................... { 
+.................... char *su1, *su2; 
+.................... for(su1=s1, su2=s2; 0<n; ++su1, ++su2, --n) 
+.................... { 
+....................    if(*su1!=*su2) 
+....................       return ((*su1<*su2)?-1:+1); 
+.................... } 
+.................... return 0; 
+.................... } 
+....................  
+.................... /* standard template: int strcmp(const char *s1, const char *s2). 
+....................    Compares s1 & s2; returns -1 if s1<s2, 0 if s1=s2, 1 if s1>s2 */ 
+....................  
+.................... signed int8 strcmp(char *s1, char *s2) 
+.................... { 
+....................    for (; *s1 == *s2; s1++, s2++) 
+....................       if (*s1 == '\0') 
+....................          return(0); 
+....................    return((*s1 < *s2) ? -1: 1); 
+.................... } 
+.................... /* standard template: int strcoll(const char *s1, const char *s2). 
+....................    Compares s1 & s2; returns -1 if s1<s2, 0 if s1=s2, 1 if s1>s2 */ 
+....................  
+.................... signed int8 strcoll(char *s1, char *s2) 
+.................... { 
+....................    for (; *s1 == *s2; s1++, s2++) 
+....................       if (*s1 == '\0') 
+....................          return(0); 
+....................    return((*s1 < *s2) ? -1: 1); 
+.................... } 
+....................  
+.................... /* standard template: 
+....................    int strncmp(const char *s1, const char *s2, size_t n). 
+....................    Compares max of n characters (not following 0) from s1 to s2; 
+....................    returns same as strcmp */ 
+....................  
+.................... signed int8 strncmp(char *s1, char *s2, size_t n) 
+.................... { 
+....................    for (; n > 0; s1++, s2++, n--) 
+....................       if (*s1 != *s2) 
+....................          return((*s1 <*s2) ? -1: 1); 
+....................       else if (*s1 == '\0') 
+....................          return(0); 
+....................    return(0); 
+.................... } 
+.................... /* standard template: 
+....................    int strxfrm(const char *s1, const char *s2, size_t n). 
+....................    transforms maximum of n characters from s2 and places them into s1*/ 
+.................... size_t strxfrm(char *s1, char *s2, size_t n) 
+.................... { 
+....................   char *s; 
+....................   unsigned int8 n1; 
+....................   n1=n; 
+....................   for (s = s1; n > 0 && *s2 != '\0'; n--) 
+....................      *s++ = *s2++; 
+....................   for (; n > 0; n--) 
+....................      *s++ = '\0'; 
+....................  
+....................   return(n1); 
+.................... } 
+....................  
+....................  
+....................  
+....................  
+....................  
+.................... /***********************************************************/ 
+.................... /*Search functions*/ 
+.................... /* standard template: void *memchr(const char *s, int c). 
+....................    Finds first occurrence of c in n characters of s */ 
+....................  
+.................... char *memchr(void *s,unsigned int8 c,size_t n) 
+.................... { 
+....................    char uc; 
+....................    char *su; 
+....................    uc=c; 
+....................    for(su=s;0<n;++su,--n) 
+....................       if(*su==uc) 
+....................       return su; 
+....................    return NULL; 
+.................... } 
+....................  
+.................... /* standard template: char *strchr(const char *s, int c). 
+....................    Finds first occurrence of c in s */ 
+....................  
+.................... char *strchr(char *s, unsigned int8 c) 
+.................... { 
+....................    for (; *s != c; s++) 
+....................       if (*s == '\0') 
+....................          return(0); 
+....................    return(s); 
+.................... } 
+.................... /* standard template: 
+....................    size_t strcspn(const char *s1, const char *s2). 
+....................    Computes length of max initial segment of s1 that 
+....................    consists entirely of characters NOT from s2*/ 
+....................  
+.................... unsigned int8  strcspn(char *s1, char *s2) 
+.................... { 
+....................    char *sc1, *sc2; 
+....................  
+....................    for (sc1 = s1; *sc1 != 0; sc1++) 
+....................       for (sc2 = s2; *sc2 != 0; sc2++) 
+....................          if (*sc1 == *sc2) 
+....................             return(sc1 - s1); 
+....................    return(sc1 - s1); 
+.................... } 
+.................... /* standard template: 
+....................    char *strpbrk(const char *s1, const char *s2). 
+....................    Locates first occurence of any character from s2 in s1; 
+....................    returns s1 if s2 is empty string */ 
+....................  
+.................... char *strpbrk(char *s1, char *s2) 
+.................... { 
+....................    char *sc1, *sc2; 
+....................  
+....................    for (sc1 = s1; *sc1 != 0; sc1++) 
+....................       for (sc2 = s2; *sc2 != 0; sc2++) 
+....................          if (*sc1 == *sc2) 
+....................             return(sc1); 
+....................    return(0); 
+.................... } 
+....................  
+....................  
+.................... /* standard template: char *strrchr(const char *s, int c). 
+....................    Finds last occurrence of c in s */ 
+....................  
+.................... char *strrchr(char *s, unsigned int8 c) 
+.................... { 
+....................    char *p; 
+....................  
+....................    for (p = 0; ; s++) 
+....................    { 
+....................       if (*s == c) 
+....................          p = s; 
+....................       if (*s == '\0') 
+....................          return(p); 
+....................    } 
+.................... } 
+.................... /* computes length of max initial segment of s1 consisting 
+....................    entirely of characters from s2 */ 
+....................  
+.................... unsigned int8  strspn(char *s1, char *s2) 
+.................... { 
+....................    char *sc1, *sc2; 
+....................  
+....................    for (sc1 = s1; *sc1 != 0; sc1++) 
+....................       for (sc2 = s2; ; sc2++) 
+....................     if (*sc2 == '\0') 
+....................        return(sc1 - s1); 
+....................          else if (*sc1 == *sc2) 
+....................             break; 
+....................    return(sc1 - s1); 
+.................... } 
+.................... /* standard template: 
+....................    char *strstr(const char *s1, const char *s2); 
+....................    Locates first occurence of character sequence s2 in s1; 
+....................    returns 0 if s2 is empty string 
+....................  
+....................    Uncomment #define FASTER_BUT_MORE_ROM at the top of the 
+....................    file to use the faster algorithm */ 
+.................... char *strstr(char *s1, char *s2) 
+.................... { 
+....................    char *s, *t; 
+....................  
+....................    #ifdef FASTER_BUT_MORE_ROM 
+....................    if (*s2 == '\0') 
+....................          return(s1); 
+....................    #endif 
+....................  
+....................    while (*s1) 
+....................    { 
+....................       for(s = s1, t = s2; *t && (*s == *t); ++s, ++t); 
+....................  
+....................       if (*t == '\0') 
+....................          return s1; 
+....................       ++s1; 
+....................       #ifdef FASTER_BUT_MORE_ROM 
+....................          while(*s1 != '\0' && *s1 != *s2) 
+....................             ++s1; 
+....................       #endif 
+....................    } 
+....................    return 0; 
+.................... } 
+....................  
+.................... /* standard template: char *strtok(char *s1, const char *s2). 
+....................  
+....................    Finds next token in s1 delimited by a character from separator 
+....................    string s2 (which can be different from call to call).  First call 
+....................    starts at beginning of s1 searching for first character NOT 
+....................    contained in s2; returns 0 if none is found. 
+....................    If one is found, it is the start of first token (return value). 
+....................    Function then searches from there for a character contained in s2. 
+....................    If none is found, current token extends to end of s1, and subsequent 
+....................    searches for a token will return 0.  If one is found, it is 
+....................    overwritten by '\0', which terminates current token.  Function saves 
+....................    pointer to following character from which next search will start. 
+....................    Each subsequent call, with 0 as first argument, starts searching 
+....................    from saved pointer */ 
+....................  
+.................... char *strtok(char *s1, char *s2) 
+.................... { 
+....................    char *beg, *end; 
+....................    static char *save; 
+*
+0CBE:  BCF    03.5
+0CBF:  CLRF   28
+0CC0:  CLRF   29
+....................  
+....................    beg = (s1)? s1: save; 
+....................    beg += strspn(beg, s2); 
+....................    if (*beg == '\0') 
+....................    { 
+....................       *save = ' '; 
+....................       return(0); 
+....................    } 
+....................    end = strpbrk(beg, s2); 
+....................    if (*end != '\0') 
+....................    { 
+....................       *end = '\0'; 
+....................       end++; 
+....................    } 
+....................    save = end; 
+....................    return(beg); 
+.................... } 
+....................  
+.................... /*****************************************************************/ 
+.................... /*Miscellaneous functions*/ 
+.................... /* standard template 
+.................... maps error number in errnum to an error message string 
+.................... Returns: Pointer to string 
+.................... */ 
+.................... #ifdef _ERRNO 
+.................... char * strerror(unsigned int8 errnum) 
+.................... { 
+.................... char s[15]; 
+.................... switch( errnum) 
+.................... { 
+.................... case 0: 
+....................    strcpy(s,"no errors"); 
+....................    return s; 
+.................... case EDOM : 
+....................    strcpy(s,"domain error"); 
+....................    return s; 
+.................... case ERANGE: 
+....................    strcpy(s,"range error"); 
+....................    return s; 
+.................... } 
+.................... } 
+.................... #ENDIF 
+.................... /* standard template: size_t strlen(const char *s). 
+....................    Computes length of s1 (preceding terminating 0) */ 
+....................  
+.................... unsigned int8 strlen(char *s) 
+.................... { 
+....................    char *sc; 
+....................  
+....................    for (sc = s; *sc != 0; sc++); 
+....................    return(sc - s); 
+.................... } 
+....................  
+.................... /* standard template: size_t stricmp(const char *s1, const char *s2). 
+....................    Compares s1 to s2 ignoring case (upper vs. lower) */ 
+....................  
+.................... signed int8 stricmp(char *s1, char *s2) 
+.................... { 
+....................  for(; *s1==*s2||(isalpha(*s1)&&isalpha(*s2)&&(*s1==*s2+32||*s2==*s1+32)); 
+....................     s1++, s2++) 
+....................     if (*s1 == '\0') 
+....................        return(0); 
+....................  return((*s1 < *s2) ? -1: 1); 
+.................... } 
+....................  
+....................  
+.................... /* standard template: char *strlwr(char *s). 
+....................    Replaces uppercase letters by lowercase; 
+....................    returns pointer to new string s */ 
+....................  
+.................... char *strlwr(char *s) 
+.................... { 
+....................    char *p; 
+....................  
+....................    for (p = s; *p != '\0'; p++) 
+....................       if (*p >= 'A' && *p <='Z') 
+....................          *p += 'a' - 'A'; 
+....................    return(s); 
+.................... } 
+....................  
+....................  
+.................... /************************************************************/ 
+....................  
+....................  
+.................... #endif 
+....................  
+....................  
+....................  
+....................  
+....................  
+....................  
+....................   
+....................  
+....................  
+....................     
+....................    #include <drv_lcd.h> 
+.................... #ifndef __DRV_LCD_H 
+.................... #define __DRV_LCD_H 
+....................  
+....................    void drv_lcd_show(); 
+....................    //void drv_lcd_mensaje(MensajeID mensajeID); 
+....................    //void drv_lcd_mensaje2(MensajeID mensajeID1,MensajeID mensajeID2); 
+....................    void drv_lcd_show1(char * cmd); 
+....................    //void drv_gpio_lcd_menu(); 
+....................     
+....................     
+.................... #endif /* __DRV_LCD_H */ 
+....................  
+....................  
+....................    #include <drv_lcd.c> 
+.................... #include "system.h" 
+.................... #ifndef __SYSTEM_H 
+.................... #define __SYSTEM_H 
+....................  
+....................    #include <16f877a.h> 
+....................    #Device adc=10 
+....................    #use delay(clock=4000000) 
+....................    #fuses XT,NOWDT,NOPROTECT,NOLVP,PUT,NODEBUG,BROWNOUT,NOCPD,NOWRT 
+....................     
+....................    //#use fast_io(a) 
+....................    #use fast_io(b) 
+....................    #use fast_io(c) 
+....................    #use fast_io(d) 
+....................    //#use fast_io(e) 
+....................     
+....................    #define Boton1 pin_b7 
+....................    #include <LCD.c> 
+....................    #include <mensajes.h> 
+....................    #include <mensajes.c> 
+....................     
+....................    #include <drv_lcd.h> 
+....................    #include <drv_lcd.c> 
+....................    #include <drv_gpio.h> 
+....................    #include <drv_gpio.c>  
+....................    #include <system.c> 
+....................  
+.................... #endif 
+....................  
+....................  
+.................... //int me = 0; 
+.................... void drv_lcd_show(){ 
+....................       printf(lcd_putc,"\f  <<PREPARADO>>\n"); 
+....................       delay_ms(1500); 
+....................       printf(lcd_putc,"\f    LAVADORA\n"); 
+....................       printf(lcd_putc,"PRESIONA(INICIO)\n");  
+....................       delay_us(1000); 
+....................       
+.................... } 
+....................  
+.................... void drv_lcd_show1(char * cmd){ 
+....................       printf(lcd_putc,"\f"); 
+....................       printf(lcd_putc,(char *)cmd); 
+....................       printf(lcd_putc,"\n"); 
+....................  
+.................... } 
+....................  
+....................  
+....................  
+....................  
+....................    #include <drv_gpio.h> 
+.................... #ifndef __DRV_GPIO_H 
+.................... #define __DRV_GPIO_H 
+....................  
+....................    //PINES PUERTO A 
+....................    #define TEMPERATURA1          pin_a0 
+....................    #define NIVEL1                pin_a1 
+....................    #define SENSOR ROTACION       pin_a4 
+....................    
+....................    //PINES PUERTO B 
+....................    #define MICRO_SWITCH          pin_b0 
+....................    #define ALARMA_VARIADOR1      pin_b1 
+....................    #define ALARMA_VARIADOR2      pin_b2 
+....................    //#define NF                    pin_b3 
+....................    #define BTN_STOP              pin_b4 
+....................    #define BTN_INICIO            pin_b5 
+....................    #define BTN_SUBIR_MENU        pin_b6   
+....................    #define BTN_BAJAR_MENU        pin_b7  
+....................  
+....................    //PINES PUERTO C 
+....................    /* 
+....................    #define STF                   pin_c0 
+....................    #define STR                   pin_c1 
+....................    #define RH                    pin_c2 
+....................    #define RM                    pin_c3 
+....................    #define SOLENOIDE1            pin_c4 
+....................    #define SOLENOIDE2            pin_c5 
+....................    #define SOLENOIDE3            pin_c6 
+....................    #define SOLENOIDE4            pin_c7 
+....................    */ 
+....................     
+....................    #define STF                   pin_c4 
+....................    #define STR                   pin_c5 
+....................    #define NF                    pin_c6 
+....................    //#define RH                    pin_c7 
+....................    #define RH                    pin_c2 
+....................    #define SOLENOIDE1            pin_c0 
+....................    #define SOLENOIDE2            pin_c1 
+....................    #define SOLENOIDE3            pin_b3 
+....................    //#define SOLENOIDE4            pin_c2 
+....................    #define SOLENOIDE4            pin_c7 
+....................     
+....................     
+....................    //PINES PUERTO E 
+....................    #define SOL_COMPUERTA         pin_e0 
+....................    #define BOMB_EXTRACCION       pin_e1 
+....................  
+....................    //MODOS LAVADORA 
+....................    #define SIN_MODO              0 
+....................    #define MODO_AUTOMATICO       1 
+....................    #define MODO_LAVADO           2 
+....................    #define MODO_CENTRIFUGADO     3 
+....................    //#define MODO_ENJUAGUE     3 
+....................  
+....................    #define MODO_INICIO           4 
+....................    //NIVEL DE AGUA 
+....................    #define SIN_NIVEL             17 
+....................    #define NIVEL_BAJO_1          18 
+....................    #define NIVEL_BAJO_2          18  
+....................    #define NIVEL_MEDIO           25 
+....................    #define NIVEL_ALTO            26 
+....................     
+....................    //TEMPERATURA 
+....................    #define SIN_TEMP              0 
+....................    #define TEMP_FRIA             1 
+....................    #define TEMP_CALIENTE         2 
+....................    #define TEMP_TIBIA            3 
+....................     
+....................    //TIEMPOS 
+....................    #define SIN_TIEMPO            0 
+....................    #define TIEMPO_25MIN          25 
+....................    #define TIEMPO_35MIN          30 
+....................    #define TIEMPO_45MIN          45 
+....................    #define TIEMPO_55MIN          55 
+....................     
+....................    #define MAX_OPCION            2 // selftest 7 
+....................    #define MAX_OPCION_           3 // selftest 7 
+....................    #define MAX_OPCION_1          5 // selftest 7 
+....................     
+....................    #define SIN_FASE              0//  
+....................    #define FASE_LAVADO           1 //  
+....................    #define FASE_ENJUAGUE         2 //  
+....................    #define FASE_CENTRIFUGADO     3 //  
+....................     
+....................    // FUNCIONES D USO GNERAL 
+....................     
+....................    void drv_gpio_int_rb(); 
+....................    void drv_gpio_int_rb0(); 
+....................    void drv_gpio_status_subir(); 
+....................    void drv_gpio_status_bajar(); 
+....................    void drv_gpio_alarmas(); 
+....................     
+....................    // FUNCIONES DE MENU 
+....................     
+....................    void drv_gpio_selftest(); 
+....................    void drv_gpio_lcd_menu(); 
+....................    void drv_gpio_lcd_test(); 
+....................    void drv_gpio_menu_test(); 
+....................    void drv_gpio_mode_time(); 
+....................    void drv_gpio_ticks(); 
+....................     
+....................    //FUNCIONES PARA CONTROL DE SALIDAS DIGITALES 
+....................     
+....................    void drv_gpio_STF(); 
+....................    void drv_gpio_STR(); 
+....................    void drv_gpio_RH(); 
+....................    void drv_gpio_RM(); 
+....................    void drv_gpio_NF(); 
+....................    void drv_gpio_SolComp(); 
+....................    void drv_gpio_BomExt(); 
+....................    void drv_gpio_BomExt_STF(); 
+....................    void drv_gpio_Solenoide12(); 
+....................    void drv_gpio_Solenoide34(); 
+....................    void drv_gpio_off_nf_ON(); 
+....................    //MODOS 
+....................  
+....................    void drv_gpio_menu0(); 
+....................    void drv_gpio_menu1();   
+....................    void drv_gpio_submenu_modo(); 
+....................    void drv_gpio_submenu_tiempo(); 
+....................    void drv_gpio_submenu_nivel(); 
+....................    void drv_gpio_submenu_temp(); 
+....................     
+....................    void drv_gpio_lavado(); 
+....................    void drv_gpio_centrifugado(); 
+....................    void drv_gpio_automatico(); 
+....................    void drv_gpio_automatico2(); 
+....................    void drv_gpio_enjuague(); 
+....................    void drv_gpio_seg(int segundos,int1 showtime); 
+....................     
+....................    void drv_gpio_finish0(); 
+....................    void drv_gpio_finish1(); 
+....................    void drv_gpio_off(); 
+....................    void drv_gpio_clear(); 
+....................    void drv_gpio_back(); 
+....................     
+....................    //GPIO ADC 
+....................    void drv_gpio_adc_lcd(); 
+....................    int16 drv_gpio_adc_read(int channel); 
+....................    void drv_gpio_adc_modo(); 
+....................     
+....................    void drv_gpio_control_time(); 
+....................     
+....................    void drv_gpio_lcd_show1(char * cmd); 
+....................    void drv_gpio_lcd_show2(char * cmd,char * cmd1); 
+....................     
+....................    void drv_gpio_pulsadores(); 
+....................     
+....................    int1 drv_gpio_level(int percent); 
+....................     
+....................    int1 drv_gpio_vaciar(int percent); 
+....................     
+....................   void drv_gpio_test_nivel(); 
+....................     
+....................     
+....................  
+.................... #endif /* __DRV_LCD_H */ 
+....................  
+....................  
+....................  
+....................    #include <drv_gpio.c>  
+.................... #include "system.h" 
+.................... #ifndef __SYSTEM_H 
+.................... #define __SYSTEM_H 
+....................  
+....................    #include <16f877a.h> 
+....................    #Device adc=10 
+....................    #use delay(clock=4000000) 
+....................    #fuses XT,NOWDT,NOPROTECT,NOLVP,PUT,NODEBUG,BROWNOUT,NOCPD,NOWRT 
+....................     
+....................    //#use fast_io(a) 
+....................    #use fast_io(b) 
+....................    #use fast_io(c) 
+....................    #use fast_io(d) 
+....................    //#use fast_io(e) 
+....................     
+....................    #define Boton1 pin_b7 
+....................    #include <LCD.c> 
+....................    #include <mensajes.h> 
+....................    #include <mensajes.c> 
+....................     
+....................    #include <drv_lcd.h> 
+....................    #include <drv_lcd.c> 
+....................    #include <drv_gpio.h> 
+....................    #include <drv_gpio.c>  
+....................    #include <system.c> 
+....................  
+.................... #endif 
+....................  
+....................  
+.................... #define AntiRebote1(PIN)    do{if(input(PIN)==1){break;}}while(1) 
+.................... #define AntiRebote0(PIN)    do{if(input(PIN)==0){break;}}while(1) 
+....................  
+.................... int1 Flag_btn_inicio,Flag_btn_stop,Flag_btn_subir,Flag_btn_bajar,Flag_rb0,Flag_ejecutar,Flag_salir; 
+.................... int1 Flag_sub_menu0, Flag_sub_menu1,Flag_rotacion,Flag_adc_nivel,Flag_RH,Flag_RM; 
+.................... int Flag_ciclo; 
+.................... int Status_modo,Status_temp,Status_nivel; 
+.................... int Status_Opcion,Status_Opcion1; 
+.................... int time,segundos,minutos,seg,min,repeticion,seg_solenoide; 
+....................  
+.................... int timeticks = 0; 
+.................... int Status_tiempo = TIEMPO_35MIN; 
+.................... int Status_tiempo_cent; 
+.................... //int Status_tiempo = 1; 
+.................... int Status_agua = NIVEL_MEDIO; 
+.................... int Status_fase = 0; 
+.................... int16 contador,Vtemperatura,Vnivel,ADCNivel,ADCrule;  
+....................  
+.................... int T_lavado,T_enjuague,T_centrifugado,T_ciclo; 
+....................  
+....................  
+.................... void drv_gpio_alarmas(){ 
+....................     
+....................    if (input(ALARMA_VARIADOR1)==0){ 
+*
+08FC:  BTFSC  06.1
+08FD:  GOTO   111
+....................       printf(lcd_putc,"\f  <<ALARMA V1>>\n"); 
+08FE:  MOVLW  61
+08FF:  BSF    03.6
+0900:  MOVWF  0D
+0901:  MOVLW  00
+0902:  MOVWF  0F
+0903:  BCF    0A.3
+0904:  BCF    03.6
+0905:  CALL   585
+0906:  BSF    0A.3
+....................       Status_modo = SIN_MODO ; 
+0907:  CLRF   2D
+....................       drv_gpio_off(); 
+0908:  BCF    0A.3
+0909:  CALL   294
+090A:  BSF    0A.3
+....................       drv_gpio_clear(); 
+090B:  BCF    0A.3
+090C:  CALL   5CB
+090D:  BSF    0A.3
+....................       Status_tiempo = TIEMPO_35MIN; 
+090E:  MOVLW  1E
+090F:  MOVWF  3A
+....................       Flag_salir =1; 
+0910:  BSF    2A.6
+....................       //Flag_alarma1 =1;       
+....................    } 
+....................  
+....................    if (input(ALARMA_VARIADOR2)==0){ 
+0911:  BTFSC  06.2
+0912:  GOTO   126
+....................       printf(lcd_putc,"\f  <<ALARMA V2>>\n"); 
+0913:  MOVLW  6A
+0914:  BSF    03.6
+0915:  MOVWF  0D
+0916:  MOVLW  00
+0917:  MOVWF  0F
+0918:  BCF    0A.3
+0919:  BCF    03.6
+091A:  CALL   585
+091B:  BSF    0A.3
+....................       Status_modo = SIN_MODO ; 
+091C:  CLRF   2D
+....................       drv_gpio_off(); 
+091D:  BCF    0A.3
+091E:  CALL   294
+091F:  BSF    0A.3
+....................       drv_gpio_clear(); 
+0920:  BCF    0A.3
+0921:  CALL   5CB
+0922:  BSF    0A.3
+....................       Status_tiempo = TIEMPO_35MIN; 
+0923:  MOVLW  1E
+0924:  MOVWF  3A
+....................       Flag_salir = 1; 
+0925:  BSF    2A.6
+....................       //Flag_alarma2 =1;       
+....................        
+....................    } 
+....................     
+.................... } 
+....................  
+.................... void drv_gpio_int_rb0(){ 
+....................  
+....................    if (input(MICRO_SWITCH)==0){  
+*
+08BC:  BTFSC  06.0
+08BD:  GOTO   0E2
+....................       delay_ms(500);   
+08BE:  MOVLW  02
+08BF:  MOVWF  50
+08C0:  MOVLW  FA
+08C1:  MOVWF  57
+08C2:  BCF    0A.3
+08C3:  CALL   1B5
+08C4:  BSF    0A.3
+08C5:  DECFSZ 50,F
+08C6:  GOTO   0C0
+....................       printf(lcd_putc,"\f  PULSADOR DE\n"); 
+08C7:  MOVLW  73
+08C8:  BSF    03.6
+08C9:  MOVWF  0D
+08CA:  MOVLW  00
+08CB:  MOVWF  0F
+08CC:  BCF    0A.3
+08CD:  BCF    03.6
+08CE:  CALL   585
+08CF:  BSF    0A.3
+....................       printf(lcd_putc," PUERTA ACTIVO\n"); 
+08D0:  MOVLW  7B
+08D1:  BSF    03.6
+08D2:  MOVWF  0D
+08D3:  MOVLW  00
+08D4:  MOVWF  0F
+08D5:  BCF    0A.3
+08D6:  BCF    03.6
+08D7:  CALL   585
+08D8:  BSF    0A.3
+....................       Status_modo = SIN_MODO ; 
+08D9:  CLRF   2D
+....................       drv_gpio_off(); 
+08DA:  BCF    0A.3
+08DB:  CALL   294
+08DC:  BSF    0A.3
+....................       drv_gpio_clear(); 
+08DD:  BCF    0A.3
+08DE:  CALL   5CB
+08DF:  BSF    0A.3
+....................       Flag_salir =1; 
+08E0:  BSF    2A.6
+....................       Flag_rb0 = 1; 
+08E1:  BSF    2A.4
+....................  
+....................    }   
+....................     
+....................    if ((input(MICRO_SWITCH)==1) && (Status_modo == SIN_MODO)&&(Flag_rb0 == 1)){ 
+08E2:  BTFSS  06.0
+08E3:  GOTO   0FC
+08E4:  MOVF   2D,F
+08E5:  BTFSS  03.2
+08E6:  GOTO   0FC
+08E7:  BTFSS  2A.4
+08E8:  GOTO   0FC
+....................       printf(lcd_putc,"\f  <<CONTINUAR>>\n"); 
+08E9:  MOVLW  83
+08EA:  BSF    03.6
+08EB:  MOVWF  0D
+08EC:  MOVLW  00
+08ED:  MOVWF  0F
+08EE:  BCF    0A.3
+08EF:  BCF    03.6
+08F0:  CALL   585
+08F1:  BSF    0A.3
+....................       printf(lcd_putc,"PRESIONA(INICIO)\n");  
+08F2:  MOVLW  8C
+08F3:  BSF    03.6
+08F4:  MOVWF  0D
+08F5:  MOVLW  00
+08F6:  MOVWF  0F
+08F7:  BCF    0A.3
+08F8:  BCF    03.6
+08F9:  CALL   585
+08FA:  BSF    0A.3
+....................       Flag_rb0 = 0; 
+08FB:  BCF    2A.4
+....................    }   
+.................... } 
+....................  
+.................... void drv_gpio_int_rb(){ 
+*
+009C:  DATA 00,00
+....................  
+....................    if (input(BTN_INICIO)==0){ 
+*
+0800:  BTFSC  06.5
+0801:  GOTO   00F
+....................  
+....................          //AntiRebote1(BTN_INICIO); 
+....................          delay_ms(250);        
+0802:  MOVLW  FA
+0803:  MOVWF  57
+0804:  BCF    0A.3
+0805:  CALL   1B5
+0806:  BSF    0A.3
+....................          if(Flag_btn_inicio == 0){ 
+0807:  BTFSC  2A.0
+0808:  GOTO   00E
+....................             Flag_btn_inicio = 1; 
+0809:  BSF    2A.0
+....................             Flag_sub_menu0 = 1;  
+080A:  BSF    2A.7
+....................             Flag_salir = 1; 
+080B:  BSF    2A.6
+....................             Status_modo = SIN_MODO ; 
+080C:  CLRF   2D
+....................          } 
+....................           
+....................          else{Flag_ejecutar = 1;}   
+080D:  GOTO   00F
+080E:  BSF    2A.5
+....................       } 
+....................        
+....................       if (input(BTN_STOP)==0){ 
+080F:  BTFSC  06.4
+0810:  GOTO   02F
+....................         //AntiRebote1(BTN_STOP); 
+....................          delay_ms(250); 
+0811:  MOVLW  FA
+0812:  MOVWF  57
+0813:  BCF    0A.3
+0814:  CALL   1B5
+0815:  BSF    0A.3
+....................          printf(lcd_putc,"\f    <<STOP>>\n");drv_gpio_off(); 
+0816:  MOVLW  95
+0817:  BSF    03.6
+0818:  MOVWF  0D
+0819:  MOVLW  00
+081A:  MOVWF  0F
+081B:  BCF    0A.3
+081C:  BCF    03.6
+081D:  CALL   585
+081E:  BSF    0A.3
+081F:  BCF    0A.3
+0820:  CALL   294
+0821:  BSF    0A.3
+....................          Flag_salir = 0; 
+0822:  BCF    2A.6
+....................          Flag_btn_stop = 1;          
+0823:  BSF    2A.1
+....................  
+....................          drv_gpio_off(); 
+0824:  BCF    0A.3
+0825:  CALL   294
+0826:  BSF    0A.3
+....................          drv_gpio_clear(); 
+0827:  BCF    0A.3
+0828:  CALL   5CB
+0829:  BSF    0A.3
+....................          Flag_salir =1; 
+082A:  BSF    2A.6
+....................  
+....................              
+....................          //if(Flag_sub_menu0 == 1 || Flag_sub_menu1 == 1){ 
+....................             //drv_gpio_back(); 
+....................             //Status_modo=0; 
+....................         // } 
+....................           
+....................          //else{ 
+....................          //drv_gpio_mode_time(); 
+....................           
+....................          /* 
+....................          if(Status_modo == SIN_MODO) { 
+....................             printf(lcd_putc,"\f    <<STOP>>\n");drv_gpio_off(); 
+....................          } 
+....................           
+....................          else{    
+....................             lcd_gotoxy(1,2); 
+....................             printf(lcd_putc,"    <<STOP>>\n");drv_gpio_off(); 
+....................          } 
+....................          */ 
+....................          Status_modo = SIN_MODO ; 
+082B:  CLRF   2D
+....................          drv_gpio_off(); 
+082C:  BCF    0A.3
+082D:  CALL   294
+082E:  BSF    0A.3
+....................  
+....................         //} 
+....................       } 
+....................     
+....................       if (input(BTN_SUBIR_MENU)==0){ 
+082F:  BTFSC  06.6
+0830:  GOTO   063
+....................          //AntiRebote1(BTN_SUBIR_MENU); 
+....................          delay_ms(250);   
+0831:  MOVLW  FA
+0832:  MOVWF  57
+0833:  BCF    0A.3
+0834:  CALL   1B5
+0835:  BSF    0A.3
+....................          Flag_btn_subir = 1; 
+0836:  BSF    2A.2
+....................          drv_gpio_status_subir(); 
+....................       } 
+....................        
+....................       if (input(BTN_BAJAR_MENU)==0){ 
+*
+0863:  BTFSC  06.7
+0864:  GOTO   093
+....................          //AntiRebote1(BTN_BAJAR_MENU); 
+....................          delay_ms(250);   
+0865:  MOVLW  FA
+0866:  MOVWF  57
+0867:  BCF    0A.3
+0868:  CALL   1B5
+0869:  BSF    0A.3
+....................          Flag_btn_bajar = 1; 
+086A:  BSF    2A.3
+....................          drv_gpio_status_bajar(); 
+....................       }    
+.................... } 
+....................  
+.................... void drv_gpio_status_subir(){ 
+....................  
+....................    switch(Status_nivel){ 
+*
+0837:  MOVF   2F,W
+0838:  BTFSC  03.2
+0839:  GOTO   03E
+083A:  XORLW  01
+083B:  BTFSC  03.2
+083C:  GOTO   047
+083D:  GOTO   063
+....................     
+....................       case 0: 
+....................          if(Flag_sub_menu0 == 1){Status_Opcion--;} 
+083E:  BTFSC  2A.7
+083F:  DECF   30,F
+....................          if(Status_Opcion == -1) Status_Opcion = MAX_OPCION_1;  
+0840:  MOVF   30,W
+0841:  SUBLW  FF
+0842:  BTFSS  03.2
+0843:  GOTO   046
+0844:  MOVLW  05
+0845:  MOVWF  30
+....................          break; 
+0846:  GOTO   063
+....................           
+....................       case 1: 
+....................          if(Flag_sub_menu1 == 1){Status_Opcion1--;} 
+0847:  BTFSC  2B.0
+0848:  DECF   31,F
+....................           
+....................          if(Status_Opcion == 3 ){ 
+0849:  MOVF   30,W
+084A:  SUBLW  03
+084B:  BTFSS  03.2
+084C:  GOTO   054
+....................             if(Status_Opcion1 == -1) Status_Opcion1 = MAX_OPCION;  
+084D:  MOVF   31,W
+084E:  SUBLW  FF
+084F:  BTFSS  03.2
+0850:  GOTO   053
+0851:  MOVLW  02
+0852:  MOVWF  31
+....................          } 
+....................          else if(Status_Opcion == 4 || Status_Opcion == 5){ 
+0853:  GOTO   062
+0854:  MOVF   30,W
+0855:  SUBLW  04
+0856:  BTFSC  03.2
+0857:  GOTO   05C
+0858:  MOVF   30,W
+0859:  SUBLW  05
+085A:  BTFSS  03.2
+085B:  GOTO   062
+....................             if(Status_Opcion1 == -1) Status_Opcion1 = MAX_OPCION_ ;          
+085C:  MOVF   31,W
+085D:  SUBLW  FF
+085E:  BTFSS  03.2
+085F:  GOTO   062
+0860:  MOVLW  03
+0861:  MOVWF  31
+....................          } 
+....................          break; 
+0862:  GOTO   063
+....................     
+....................      }   
+.................... } 
+....................  
+.................... void drv_gpio_status_bajar(){ 
+....................  
+....................    switch(Status_nivel){ 
+*
+086B:  MOVF   2F,W
+086C:  BTFSC  03.2
+086D:  GOTO   072
+086E:  XORLW  01
+086F:  BTFSC  03.2
+0870:  GOTO   07A
+0871:  GOTO   093
+....................     
+....................       case 0: 
+....................          if(Flag_sub_menu0 == 1){Status_Opcion++;}; 
+0872:  BTFSS  2A.7
+0873:  GOTO   075
+0874:  INCF   30,F
+....................          if(Status_Opcion > MAX_OPCION_1) Status_Opcion = 0;  
+0875:  MOVF   30,W
+0876:  SUBLW  05
+0877:  BTFSS  03.0
+0878:  CLRF   30
+....................          break; 
+0879:  GOTO   093
+....................           
+....................       case 1: 
+....................          if(Flag_sub_menu1 == 1){Status_Opcion1++;}; 
+087A:  BTFSS  2B.0
+087B:  GOTO   07D
+087C:  INCF   31,F
+....................           
+....................          if(Status_Opcion==3 ){ 
+087D:  MOVF   30,W
+087E:  SUBLW  03
+087F:  BTFSS  03.2
+0880:  GOTO   086
+....................             if(Status_Opcion1 > MAX_OPCION) Status_Opcion1 = 0;  
+0881:  MOVF   31,W
+0882:  SUBLW  02
+0883:  BTFSS  03.0
+0884:  CLRF   31
+....................          } 
+....................          else if(Status_Opcion == 4 || Status_Opcion == 5){ 
+0885:  GOTO   092
+0886:  MOVF   30,W
+0887:  SUBLW  04
+0888:  BTFSC  03.2
+0889:  GOTO   08E
+088A:  MOVF   30,W
+088B:  SUBLW  05
+088C:  BTFSS  03.2
+088D:  GOTO   092
+....................             if(Status_Opcion1 > MAX_OPCION_) Status_Opcion1 = 0;  
+088E:  MOVF   31,W
+088F:  SUBLW  03
+0890:  BTFSS  03.0
+0891:  CLRF   31
+....................          } 
+....................          break; 
+0892:  GOTO   093
+....................     
+....................     } 
+.................... } 
+....................     
+....................  
+.................... void drv_gpio_lcd_menu(){ 
+....................  
+....................   switch(Status_nivel){ 
+0893:  MOVF   2F,W
+0894:  BTFSC  03.2
+0895:  GOTO   09D
+0896:  XORLW  01
+0897:  BTFSC  03.2
+0898:  GOTO   0A1
+0899:  XORLW  03
+089A:  BTFSC  03.2
+089B:  GOTO   0BB
+089C:  GOTO   0BC
+....................    case 0: 
+....................       drv_gpio_menu0(); 
+089D:  BCF    0A.3
+089E:  GOTO   716
+089F:  BSF    0A.3
+....................       break; 
+08A0:  GOTO   0BC
+....................    case 1: 
+....................       drv_gpio_menu1(); 
+....................       break; 
+*
+08BA:  GOTO   0BC
+....................    case 2: 
+....................       //drv_gpio_menu2(); 
+....................       break; 
+08BB:  GOTO   0BC
+....................        
+....................   }  
+.................... } 
+....................  
+.................... void drv_gpio_menu1(){ 
+....................     
+....................    //   if((Flag_sub_menu1 == 1) && (Flag_rb0) == 0){ 
+....................    if((Flag_sub_menu1 == 1)){ 
+*
+08A1:  BTFSS  2B.0
+08A2:  GOTO   0BA
+....................           
+....................       switch(Status_Opcion){ 
+08A3:  MOVF   30,W
+08A4:  XORLW  03
+08A5:  BTFSC  03.2
+08A6:  GOTO   0AE
+08A7:  XORLW  07
+08A8:  BTFSC  03.2
+08A9:  GOTO   0B2
+08AA:  XORLW  01
+08AB:  BTFSC  03.2
+08AC:  GOTO   0B6
+08AD:  GOTO   0BA
+....................       case 3: 
+....................          drv_gpio_submenu_temp(); 
+08AE:  BCF    0A.3
+08AF:  CALL   5EB
+08B0:  BSF    0A.3
+....................          break; 
+08B1:  GOTO   0BA
+....................       case 4: 
+....................          drv_gpio_submenu_nivel(); 
+08B2:  BCF    0A.3
+08B3:  CALL   638
+08B4:  BSF    0A.3
+....................          break; 
+08B5:  GOTO   0BA
+....................       case 5: 
+....................          drv_gpio_submenu_tiempo(); 
+08B6:  BCF    0A.3
+08B7:  CALL   6A7
+08B8:  BSF    0A.3
+....................          break; 
+08B9:  GOTO   0BA
+....................       } 
+....................    } 
+.................... } 
+....................  
+.................... void drv_gpio_menu0(){ 
+....................  
+....................    //if((Flag_sub_menu0 == 1) && (Flag_rb0) == 0){  
+....................    if(Flag_sub_menu0 == 1){ 
+*
+0716:  BTFSS  2A.7
+0717:  GOTO   7BA
+....................        
+....................       switch(Status_opcion){ 
+0718:  MOVF   30,W
+0719:  ADDLW  FA
+071A:  BTFSC  03.0
+071B:  GOTO   7BA
+071C:  ADDLW  06
+071D:  GOTO   7BD
+....................        
+....................          case 0: 
+....................           
+....................             printf(lcd_putc,"\f"); 
+071E:  MOVLW  0C
+071F:  MOVWF  56
+0720:  CALL   350
+....................             printf(lcd_putc,AUTOM_); 
+0721:  MOVLW  9D
+0722:  BSF    03.6
+0723:  MOVWF  0D
+0724:  MOVLW  00
+0725:  MOVWF  0F
+0726:  BCF    03.6
+0727:  CALL   585
+....................             printf(lcd_putc,LAVADO); 
+0728:  MOVLW  A4
+0729:  BSF    03.6
+072A:  MOVWF  0D
+072B:  MOVLW  00
+072C:  MOVWF  0F
+072D:  BCF    03.6
+072E:  CALL   585
+....................             //printf(lcd_putc,LAVADO_); 
+....................             //printf(lcd_putc,CENTRIFUGADO); 
+....................              
+....................             if(Flag_ejecutar == 1){ 
+072F:  BTFSS  2A.5
+0730:  GOTO   738
+....................                drv_gpio_finish0(); 
+....................                Status_modo = MODO_AUTOMATICO; 
+*
+0734:  MOVLW  01
+0735:  MOVWF  2D
+....................               // Status_modo = MODO_LAVADO ; 
+....................                 
+....................                drv_gpio_mode_time(); 
+0736:  CALL   45F
+....................                drv_gpio_clear();     
+0737:  CALL   5CB
+....................             } 
+....................             break; 
+0738:  GOTO   7BA
+....................              
+....................          case 1:    
+....................             printf(lcd_putc,"\f"); 
+0739:  MOVLW  0C
+073A:  MOVWF  56
+073B:  CALL   350
+....................             printf(lcd_putc,AUTOM); 
+073C:  MOVLW  A8
+073D:  BSF    03.6
+073E:  MOVWF  0D
+073F:  MOVLW  00
+0740:  MOVWF  0F
+0741:  BCF    03.6
+0742:  CALL   585
+....................             printf(lcd_putc,LAVADO_); 
+0743:  MOVLW  AE
+0744:  BSF    03.6
+0745:  MOVWF  0D
+0746:  MOVLW  00
+0747:  MOVWF  0F
+0748:  BCF    03.6
+0749:  CALL   585
+....................             // printf(lcd_putc,LAVADO); 
+....................             //printf(lcd_putc,CENTRIFUGADO_); 
+....................              
+....................             if(Flag_ejecutar == 1){ 
+074A:  BTFSS  2A.5
+074B:  GOTO   753
+....................                drv_gpio_finish0(); 
+....................                Status_modo = MODO_LAVADO ; 
+*
+074F:  MOVLW  02
+0750:  MOVWF  2D
+....................                //Status_modo = MODO_CENTRIFUGADO; 
+....................                drv_gpio_mode_time(); 
+0751:  CALL   45F
+....................                drv_gpio_clear();                       
+0752:  CALL   5CB
+....................             } 
+....................             break; 
+0753:  GOTO   7BA
+....................               
+....................          case 2:       
+....................             printf(lcd_putc,"\f"); 
+0754:  MOVLW  0C
+0755:  MOVWF  56
+0756:  CALL   350
+....................             printf(lcd_putc,CENTRIFUGADO_); 
+0757:  MOVLW  B3
+0758:  BSF    03.6
+0759:  MOVWF  0D
+075A:  MOVLW  00
+075B:  MOVWF  0F
+075C:  BCF    03.6
+075D:  CALL   585
+....................             //printf(lcd_putc,AUTOM_); 
+....................             printf(lcd_putc,TEMPERATURA); 
+075E:  MOVLW  BB
+075F:  BSF    03.6
+0760:  MOVWF  0D
+0761:  MOVLW  00
+0762:  MOVWF  0F
+0763:  BCF    03.6
+0764:  CALL   585
+....................              
+....................             if(Flag_ejecutar == 1){ 
+0765:  BTFSS  2A.5
+0766:  GOTO   76E
+....................                drv_gpio_finish0(); 
+....................                Status_modo = MODO_CENTRIFUGADO; 
+*
+076A:  MOVLW  03
+076B:  MOVWF  2D
+....................                //Status_modo = MODO_AUTOMATICO; 
+....................                drv_gpio_mode_time(); 
+076C:  CALL   45F
+....................                drv_gpio_clear();                 
+076D:  CALL   5CB
+....................             }             
+....................             break; 
+076E:  GOTO   7BA
+....................              
+....................          case 3:      
+....................             printf(lcd_putc,"\f"); 
+076F:  MOVLW  0C
+0770:  MOVWF  56
+0771:  CALL   350
+....................             printf(lcd_putc,CENTRIFUGADO); 
+0772:  MOVLW  C2
+0773:  BSF    03.6
+0774:  MOVWF  0D
+0775:  MOVLW  00
+0776:  MOVWF  0F
+0777:  BCF    03.6
+0778:  CALL   585
+....................             //printf(lcd_putc,AUTOM); 
+....................             printf(lcd_putc,TEMPERATURA_); 
+0779:  MOVLW  C9
+077A:  BSF    03.6
+077B:  MOVWF  0D
+077C:  MOVLW  00
+077D:  MOVWF  0F
+077E:  BCF    03.6
+077F:  CALL   585
+....................              
+....................             if(Flag_ejecutar == 1){ 
+0780:  BTFSS  2A.5
+0781:  GOTO   787
+....................                drv_gpio_finish1(); 
+....................                drv_gpio_submenu_temp(); 
+*
+0786:  CALL   5EB
+....................             }   
+....................             break; 
+0787:  GOTO   7BA
+....................        
+....................          case 4: 
+....................             printf(lcd_putc,"\f"); 
+0788:  MOVLW  0C
+0789:  MOVWF  56
+078A:  CALL   350
+....................             printf(lcd_putc,NIVEL_); 
+078B:  MOVLW  D0
+078C:  BSF    03.6
+078D:  MOVWF  0D
+078E:  MOVLW  00
+078F:  MOVWF  0F
+0790:  BCF    03.6
+0791:  CALL   585
+....................             printf(lcd_putc,TIEMPO); 
+0792:  MOVLW  D4
+0793:  BSF    03.6
+0794:  MOVWF  0D
+0795:  MOVLW  00
+0796:  MOVWF  0F
+0797:  BCF    03.6
+0798:  CALL   585
+....................              
+....................             if(Flag_ejecutar == 1){ 
+0799:  BTFSS  2A.5
+079A:  GOTO   7A0
+....................                drv_gpio_finish1(); 
+....................                drv_gpio_submenu_nivel(); 
+*
+079F:  CALL   638
+....................             }          
+....................             break;   
+07A0:  GOTO   7BA
+....................               
+....................          case 5: 
+....................             printf(lcd_putc,"\f"); 
+07A1:  MOVLW  0C
+07A2:  MOVWF  56
+07A3:  CALL   350
+....................             printf(lcd_putc,NIVEL); 
+07A4:  MOVLW  D8
+07A5:  BSF    03.6
+07A6:  MOVWF  0D
+07A7:  MOVLW  00
+07A8:  MOVWF  0F
+07A9:  BCF    03.6
+07AA:  CALL   585
+....................             printf(lcd_putc,TIEMPO_); 
+07AB:  MOVLW  DC
+07AC:  BSF    03.6
+07AD:  MOVWF  0D
+07AE:  MOVLW  00
+07AF:  MOVWF  0F
+07B0:  BCF    03.6
+07B1:  CALL   585
+....................              
+....................             if(Flag_ejecutar == 1){ 
+07B2:  BTFSS  2A.5
+07B3:  GOTO   7B9
+....................                drv_gpio_finish1(); 
+....................                drv_gpio_submenu_tiempo(); 
+*
+07B8:  CALL   6A7
+....................             }           
+....................             break;            
+07B9:  GOTO   7BA
+....................        }      
+....................    } 
+.................... } 
+07BA:  BSF    0A.3
+07BB:  BCF    0A.4
+07BC:  GOTO   0BC (RETURN)
+....................  
+.................... void drv_gpio_submenu_tiempo(){ 
+....................  
+....................    //if((Flag_sub_menu1 == 1) && (Flag_rb0) == 0){ 
+....................    //if(Flag_sub_menu1 == 1){ 
+....................     
+....................       switch(Status_opcion1){ 
+*
+06A7:  MOVF   31,W
+06A8:  ADDLW  FC
+06A9:  BTFSC  03.0
+06AA:  GOTO   70D
+06AB:  ADDLW  04
+06AC:  GOTO   70E
+....................        
+....................          case 0: 
+....................             printf(lcd_putc,"\f"); 
+06AD:  MOVLW  0C
+06AE:  MOVWF  56
+06AF:  CALL   350
+....................             printf(lcd_putc,T_25MIN_); 
+06B0:  MOVLW  E1
+06B1:  BSF    03.6
+06B2:  MOVWF  0D
+06B3:  MOVLW  00
+06B4:  MOVWF  0F
+06B5:  BCF    03.6
+06B6:  CALL   585
+....................             printf(lcd_putc,T_35MIN); 
+06B7:  MOVLW  E6
+06B8:  BSF    03.6
+06B9:  MOVWF  0D
+06BA:  MOVLW  00
+06BB:  MOVWF  0F
+06BC:  BCF    03.6
+06BD:  CALL   585
+....................              
+....................             if(Flag_ejecutar == 1){ 
+06BE:  BTFSS  2A.5
+06BF:  GOTO   6C4
+....................                Status_tiempo = TIEMPO_25MIN; 
+06C0:  MOVLW  19
+06C1:  MOVWF  3A
+....................                Flag_ejecutar = 0; 
+06C2:  BCF    2A.5
+....................                drv_gpio_back(); 
+06C3:  CALL   5D7
+....................             } 
+....................             break; 
+06C4:  GOTO   70D
+....................              
+....................           case 1: 
+....................             printf(lcd_putc,"\f"); 
+06C5:  MOVLW  0C
+06C6:  MOVWF  56
+06C7:  CALL   350
+....................             printf(lcd_putc,T_25MIN); 
+06C8:  MOVLW  EA
+06C9:  BSF    03.6
+06CA:  MOVWF  0D
+06CB:  MOVLW  00
+06CC:  MOVWF  0F
+06CD:  BCF    03.6
+06CE:  CALL   585
+....................             printf(lcd_putc,T_35MIN_); 
+06CF:  MOVLW  EE
+06D0:  BSF    03.6
+06D1:  MOVWF  0D
+06D2:  MOVLW  00
+06D3:  MOVWF  0F
+06D4:  BCF    03.6
+06D5:  CALL   585
+....................              
+....................             if(Flag_ejecutar == 1){ 
+06D6:  BTFSS  2A.5
+06D7:  GOTO   6DC
+....................                Status_tiempo = TIEMPO_35MIN;  
+06D8:  MOVLW  1E
+06D9:  MOVWF  3A
+....................                Flag_ejecutar = 0; 
+06DA:  BCF    2A.5
+....................                drv_gpio_back();       
+06DB:  CALL   5D7
+....................             } 
+....................             break; 
+06DC:  GOTO   70D
+....................              
+....................           case 2: 
+....................            
+....................             printf(lcd_putc,"\f"); 
+06DD:  MOVLW  0C
+06DE:  MOVWF  56
+06DF:  CALL   350
+....................             printf(lcd_putc,T_45MIN_); 
+06E0:  MOVLW  F3
+06E1:  BSF    03.6
+06E2:  MOVWF  0D
+06E3:  MOVLW  00
+06E4:  MOVWF  0F
+06E5:  BCF    03.6
+06E6:  CALL   585
+....................             printf(lcd_putc,T_55MIN); 
+06E7:  MOVLW  F8
+06E8:  BSF    03.6
+06E9:  MOVWF  0D
+06EA:  MOVLW  00
+06EB:  MOVWF  0F
+06EC:  BCF    03.6
+06ED:  CALL   585
+....................              
+....................             if(Flag_ejecutar == 1){ 
+06EE:  BTFSS  2A.5
+06EF:  GOTO   6F4
+....................                Status_tiempo = TIEMPO_45MIN; 
+06F0:  MOVLW  2D
+06F1:  MOVWF  3A
+....................                Flag_ejecutar = 0; 
+06F2:  BCF    2A.5
+....................                drv_gpio_back();                
+06F3:  CALL   5D7
+....................             }      
+....................             break; 
+06F4:  GOTO   70D
+....................              
+....................          case 3: 
+....................             printf(lcd_putc,"\f"); 
+06F5:  MOVLW  0C
+06F6:  MOVWF  56
+06F7:  CALL   350
+....................             printf(lcd_putc,T_45MIN); 
+06F8:  MOVLW  FC
+06F9:  BSF    03.6
+06FA:  MOVWF  0D
+06FB:  MOVLW  00
+06FC:  MOVWF  0F
+06FD:  BCF    03.6
+06FE:  CALL   585
+....................             printf(lcd_putc,T_55MIN_); 
+06FF:  MOVLW  00
+0700:  BSF    03.6
+0701:  MOVWF  0D
+0702:  MOVLW  01
+0703:  MOVWF  0F
+0704:  BCF    03.6
+0705:  CALL   585
+....................             if(Flag_ejecutar == 1){ 
+0706:  BTFSS  2A.5
+0707:  GOTO   70C
+....................                Status_tiempo = TIEMPO_55MIN; 
+0708:  MOVLW  37
+0709:  MOVWF  3A
+....................                Flag_ejecutar = 0; 
+070A:  BCF    2A.5
+....................                drv_gpio_back(); 
+070B:  CALL   5D7
+....................             } 
+....................             break;       
+070C:  GOTO   70D
+....................         } 
+....................    // } 
+.................... } 
+070D:  RETURN
+....................  
+.................... void drv_gpio_submenu_nivel(){ 
+....................  
+....................    switch(Status_opcion1){ 
+*
+0638:  MOVF   31,W
+0639:  ADDLW  FC
+063A:  BTFSC  03.0
+063B:  GOTO   69E
+063C:  ADDLW  04
+063D:  GOTO   69F
+....................     
+....................       case 0: 
+....................          printf(lcd_putc,"\f"); 
+063E:  MOVLW  0C
+063F:  MOVWF  56
+0640:  CALL   350
+....................          printf(lcd_putc,MUY_BAJO_); 
+0641:  MOVLW  05
+0642:  BSF    03.6
+0643:  MOVWF  0D
+0644:  MOVLW  01
+0645:  MOVWF  0F
+0646:  BCF    03.6
+0647:  CALL   585
+....................          printf(lcd_putc,BAJO); 
+0648:  MOVLW  0B
+0649:  BSF    03.6
+064A:  MOVWF  0D
+064B:  MOVLW  01
+064C:  MOVWF  0F
+064D:  BCF    03.6
+064E:  CALL   585
+....................          if(Flag_ejecutar == 1){ 
+064F:  BTFSS  2A.5
+0650:  GOTO   655
+....................             Status_agua = NIVEL_BAJO_1; 
+0651:  MOVLW  12
+0652:  MOVWF  3C
+....................             Flag_ejecutar = 0; 
+0653:  BCF    2A.5
+....................             drv_gpio_back(); 
+0654:  CALL   5D7
+....................          } 
+....................          break; 
+0655:  GOTO   69E
+....................           
+....................       case 1: 
+....................        
+....................          printf(lcd_putc,"\f"); 
+0656:  MOVLW  0C
+0657:  MOVWF  56
+0658:  CALL   350
+....................          printf(lcd_putc,MUY_BAJO); 
+0659:  MOVLW  0E
+065A:  BSF    03.6
+065B:  MOVWF  0D
+065C:  MOVLW  01
+065D:  MOVWF  0F
+065E:  BCF    03.6
+065F:  CALL   585
+....................          printf(lcd_putc,BAJO_); 
+0660:  MOVLW  13
+0661:  BSF    03.6
+0662:  MOVWF  0D
+0663:  MOVLW  01
+0664:  MOVWF  0F
+0665:  BCF    03.6
+0666:  CALL   585
+....................           
+....................          if(Flag_ejecutar == 1){ 
+0667:  BTFSS  2A.5
+0668:  GOTO   66D
+....................             Status_agua = NIVEL_BAJO_2; 
+0669:  MOVLW  12
+066A:  MOVWF  3C
+....................             Flag_ejecutar = 0; 
+066B:  BCF    2A.5
+....................             drv_gpio_back();    
+066C:  CALL   5D7
+....................          } 
+....................          break; 
+066D:  GOTO   69E
+....................           
+....................       case 2: 
+....................          printf(lcd_putc,"\f"); 
+066E:  MOVLW  0C
+066F:  MOVWF  56
+0670:  CALL   350
+....................          printf(lcd_putc,MEDIO_); 
+0671:  MOVLW  17
+0672:  BSF    03.6
+0673:  MOVWF  0D
+0674:  MOVLW  01
+0675:  MOVWF  0F
+0676:  BCF    03.6
+0677:  CALL   585
+....................          printf(lcd_putc,ALTO ); 
+0678:  MOVLW  1B
+0679:  BSF    03.6
+067A:  MOVWF  0D
+067B:  MOVLW  01
+067C:  MOVWF  0F
+067D:  BCF    03.6
+067E:  CALL   585
+....................          if(Flag_ejecutar == 1){ 
+067F:  BTFSS  2A.5
+0680:  GOTO   685
+....................             Status_agua = NIVEL_MEDIO; 
+0681:  MOVLW  19
+0682:  MOVWF  3C
+....................             Flag_ejecutar = 0; 
+0683:  BCF    2A.5
+....................             drv_gpio_back();  
+0684:  CALL   5D7
+....................          } 
+....................          break; 
+0685:  GOTO   69E
+....................              
+....................       case 3: 
+....................          printf(lcd_putc,"\f"); 
+0686:  MOVLW  0C
+0687:  MOVWF  56
+0688:  CALL   350
+....................          printf(lcd_putc,MEDIO); 
+0689:  MOVLW  1E
+068A:  BSF    03.6
+068B:  MOVWF  0D
+068C:  MOVLW  01
+068D:  MOVWF  0F
+068E:  BCF    03.6
+068F:  CALL   585
+....................          printf(lcd_putc,ALTO_); 
+0690:  MOVLW  22
+0691:  BSF    03.6
+0692:  MOVWF  0D
+0693:  MOVLW  01
+0694:  MOVWF  0F
+0695:  BCF    03.6
+0696:  CALL   585
+....................          if(Flag_ejecutar == 1){ 
+0697:  BTFSS  2A.5
+0698:  GOTO   69D
+....................             Status_agua = NIVEL_ALTO; 
+0699:  MOVLW  1A
+069A:  MOVWF  3C
+....................             Flag_ejecutar = 0; 
+069B:  BCF    2A.5
+....................             drv_gpio_back();  
+069C:  CALL   5D7
+....................          }           
+....................          break;             
+069D:  GOTO   69E
+....................      } 
+.................... } 
+069E:  RETURN
+....................  
+.................... void drv_gpio_submenu_temp(){ 
+....................  
+....................    switch(Status_opcion1){ 
+*
+05EB:  MOVF   31,W
+05EC:  XORLW  00
+05ED:  BTFSC  03.2
+05EE:  GOTO   5F6
+05EF:  XORLW  01
+05F0:  BTFSC  03.2
+05F1:  GOTO   60E
+05F2:  XORLW  03
+05F3:  BTFSC  03.2
+05F4:  GOTO   626
+05F5:  GOTO   637
+....................       case 0: 
+....................          printf(lcd_putc,"\f"); 
+05F6:  MOVLW  0C
+05F7:  MOVWF  56
+05F8:  CALL   350
+....................          printf(lcd_putc,FRIA_); 
+05F9:  MOVLW  26
+05FA:  BSF    03.6
+05FB:  MOVWF  0D
+05FC:  MOVLW  01
+05FD:  MOVWF  0F
+05FE:  BCF    03.6
+05FF:  CALL   585
+....................          printf(lcd_putc,CALIENTE); 
+0600:  MOVLW  2A
+0601:  BSF    03.6
+0602:  MOVWF  0D
+0603:  MOVLW  01
+0604:  MOVWF  0F
+0605:  BCF    03.6
+0606:  CALL   585
+....................          if(Flag_ejecutar == 1){ 
+0607:  BTFSS  2A.5
+0608:  GOTO   60D
+....................             Status_temp = TEMP_FRIA; 
+0609:  MOVLW  01
+060A:  MOVWF  2E
+....................             Flag_ejecutar = 0; 
+060B:  BCF    2A.5
+....................             drv_gpio_back(); 
+060C:  CALL   5D7
+....................          } 
+....................          break; 
+060D:  GOTO   637
+....................           
+....................       case 1:    
+....................          printf(lcd_putc,"\f"); 
+060E:  MOVLW  0C
+060F:  MOVWF  56
+0610:  CALL   350
+....................          printf(lcd_putc,FRIA); 
+0611:  MOVLW  2F
+0612:  BSF    03.6
+0613:  MOVWF  0D
+0614:  MOVLW  01
+0615:  MOVWF  0F
+0616:  BCF    03.6
+0617:  CALL   585
+....................          printf(lcd_putc,CALIENTE_); 
+0618:  MOVLW  32
+0619:  BSF    03.6
+061A:  MOVWF  0D
+061B:  MOVLW  01
+061C:  MOVWF  0F
+061D:  BCF    03.6
+061E:  CALL   585
+....................        
+....................          if(Flag_ejecutar == 1){ 
+061F:  BTFSS  2A.5
+0620:  GOTO   625
+....................             Status_temp = TEMP_CALIENTE ; 
+0621:  MOVLW  02
+0622:  MOVWF  2E
+....................             Flag_ejecutar = 0; 
+0623:  BCF    2A.5
+....................             drv_gpio_back();             
+0624:  CALL   5D7
+....................          } 
+....................          break; 
+0625:  GOTO   637
+....................           
+....................       case 2: 
+....................          printf(lcd_putc,"\f"); 
+0626:  MOVLW  0C
+0627:  MOVWF  56
+0628:  CALL   350
+....................          printf(lcd_putc,TEMP_AMBOS_); 
+0629:  MOVLW  38
+062A:  BSF    03.6
+062B:  MOVWF  0D
+062C:  MOVLW  01
+062D:  MOVWF  0F
+062E:  BCF    03.6
+062F:  CALL   585
+....................  
+....................          if(Flag_ejecutar == 1){ 
+0630:  BTFSS  2A.5
+0631:  GOTO   636
+....................             Status_temp = TEMP_TIBIA; 
+0632:  MOVLW  03
+0633:  MOVWF  2E
+....................             Flag_ejecutar = 0; 
+0634:  BCF    2A.5
+....................             drv_gpio_back(); 
+0635:  CALL   5D7
+....................          }        
+....................          break;          
+0636:  GOTO   637
+....................     } 
+.................... } 
+0637:  RETURN
+....................  
+.................... void drv_gpio_back(){ 
+....................  
+....................    switch(Status_nivel){ 
+*
+05D7:  MOVF   2F,W
+05D8:  XORLW  01
+05D9:  BTFSC  03.2
+05DA:  GOTO   5DF
+05DB:  XORLW  03
+05DC:  BTFSC  03.2
+05DD:  GOTO   5E5
+05DE:  GOTO   5EA
+....................         
+....................       case 1: 
+....................          Status_nivel = 0; 
+05DF:  CLRF   2F
+....................          //Status_Opcion = 0; 
+....................          Status_opcion1 = 0; 
+05E0:  CLRF   31
+....................          Flag_btn_inicio = 1;//Flag_menu = 1; 
+05E1:  BSF    2A.0
+....................          Flag_sub_menu1 = 0; 
+05E2:  BCF    2B.0
+....................          Flag_sub_menu0 = 1; 
+05E3:  BSF    2A.7
+....................          //drv_gpio_menu0(); 
+....................          break; 
+05E4:  GOTO   5EA
+....................        
+....................       case 2: 
+....................          Status_nivel = 1; 
+05E5:  MOVLW  01
+05E6:  MOVWF  2F
+....................          Status_Opcion1 = 0; 
+05E7:  CLRF   31
+....................          //Status_Opcion2 = 0; 
+....................          //Flag_sub_menu2 = 0; 
+....................          Flag_sub_menu1 = 1; 
+05E8:  BSF    2B.0
+....................          //drv_gpio_menu1(); 
+....................          break; 
+05E9:  GOTO   5EA
+....................    }  
+.................... } 
+05EA:  RETURN
+....................  
+.................... void drv_gpio_clear(){ 
+....................  
+....................    Status_Opcion = 0; 
+*
+05CB:  CLRF   30
+....................    Status_opcion1 = 0;   
+05CC:  CLRF   31
+....................    Flag_btn_inicio = 0; 
+05CD:  BCF    2A.0
+....................    Flag_sub_menu1 = 0; 
+05CE:  BCF    2B.0
+....................    Flag_sub_menu0 = 0; 
+05CF:  BCF    2A.7
+....................    Flag_ejecutar = 0; 
+05D0:  BCF    2A.5
+....................    Flag_salir = 0; 
+05D1:  BCF    2A.6
+....................    Flag_RH = 0; 
+05D2:  BCF    2B.3
+....................    Flag_RM = 0; 
+05D3:  BCF    2B.4
+....................    seg = 0; 
+05D4:  CLRF   35
+....................    min = 0; 
+05D5:  CLRF   36
+....................    //min2 = 0; 
+.................... } 
+05D6:  RETURN
+....................  
+.................... void drv_gpio_finish1(){ 
+....................    Flag_ejecutar = 0; 
+*
+0782:  BCF    2A.5
+*
+079B:  BCF    2A.5
+*
+07B4:  BCF    2A.5
+....................    Flag_sub_menu1 = 1; 
+*
+0783:  BSF    2B.0
+*
+079C:  BSF    2B.0
+*
+07B5:  BSF    2B.0
+....................    Status_nivel = 1;    
+*
+0784:  MOVLW  01
+0785:  MOVWF  2F
+*
+079D:  MOVLW  01
+079E:  MOVWF  2F
+*
+07B6:  MOVLW  01
+07B7:  MOVWF  2F
+.................... } 
+....................  
+.................... void drv_gpio_finish0(){ 
+....................    Flag_ejecutar = 0; 
+*
+0731:  BCF    2A.5
+*
+074C:  BCF    2A.5
+*
+0767:  BCF    2A.5
+....................    Flag_sub_menu1 = 0; 
+*
+0732:  BCF    2B.0
+*
+074D:  BCF    2B.0
+*
+0768:  BCF    2B.0
+....................    Status_nivel = 0;    
+*
+0733:  CLRF   2F
+*
+074E:  CLRF   2F
+*
+0769:  CLRF   2F
+.................... } 
+....................  
+.................... void drv_gpio_off(){ 
+....................    output_c(0b00000000);  
+*
+0294:  CLRF   07
+....................    output_e(0b00000000);   
+0295:  BSF    03.5
+0296:  BCF    09.0
+0297:  BCF    09.1
+0298:  BCF    09.2
+0299:  BCF    03.5
+029A:  CLRF   09
+....................    output_bit(SOLENOIDE3,0); 
+029B:  BCF    06.3
+....................    //output_bit(RH,0); 
+....................    set_pwm1_duty(5); 
+029C:  MOVLW  05
+029D:  MOVWF  15
+.................... } 
+029E:  RETURN
+....................  
+.................... void drv_gpio_off_nf_ON(){ 
+....................    //output_c(0b01000000);  
+....................    output_e(0b00000000);   
+*
+07C7:  BSF    03.5
+07C8:  BCF    09.0
+07C9:  BCF    09.1
+07CA:  BCF    09.2
+07CB:  BCF    03.5
+07CC:  CLRF   09
+....................    //output_bit(SOLENOIDE1,0); 
+....................    //output_bit(SOLENOIDE2,0); 
+....................    output_bit(SOLENOIDE3,0); 
+07CD:  BCF    06.3
+....................    output_bit(SOLENOIDE4,0); 
+07CE:  BCF    07.7
+....................    output_bit(STF,0); 
+07CF:  BCF    07.4
+....................    output_bit(STR,0); 
+07D0:  BCF    07.5
+....................    output_bit(NF,1); 
+07D1:  BSF    07.6
+.................... } 
+07D2:  RETURN
+....................  
+.................... void drv_gpio_NF(){ 
+....................    output_bit(SOLENOIDE3,0); 
+*
+0BB5:  BCF    06.3
+*
+0C9B:  BCF    06.3
+....................    output_bit(NF,1); 
+*
+0BB6:  BSF    07.6
+*
+0C9C:  BSF    07.6
+....................    //set_pwm1_duty(5); 
+.................... } 
+....................  
+.................... void drv_gpio_STF(){ 
+....................    //printf(lcd_putc,"\fROTACION ADELANTE\n"); 
+....................    //output_c(0b00000000); 
+....................    //output_e(0b00000000);  
+....................    output_bit(SOLENOIDE3,0); 
+*
+0AAB:  BCF    06.3
+*
+0BCE:  BCF    06.3
+....................    output_bit(STF,1); 
+*
+0AAC:  BSF    07.4
+*
+0BCF:  BSF    07.4
+....................    //set_pwm1_duty(5); 
+.................... } 
+....................  
+.................... void drv_gpio_STR(){ 
+....................    //printf(lcd_putc,"\fROTACION ATRAS\n"); 
+....................    //output_c(0b00000000); 
+....................    //output_e(0b00000000);  
+....................    output_bit(SOLENOIDE3,0); 
+*
+0AD1:  BCF    06.3
+*
+0BF4:  BCF    06.3
+....................    output_bit(STR,1); 
+*
+0AD2:  BSF    07.5
+*
+0BF5:  BSF    07.5
+....................     
+....................    //set_pwm1_duty(5); 
+....................  
+.................... } 
+.................... void drv_gpio_RH(){ 
+....................   //printf(lcd_putc,"\fVELOCIDAD ALTA\n"); 
+....................   set_pwm1_duty(34); 
+....................   //output_e(0b00000000); 
+....................    
+....................    //output_c(0b00000000); 
+....................    //output_e(0b00000000);  
+....................    output_bit(SOLENOIDE3,0); 
+....................    ////output_bit(RH,1); 
+....................    Flag_RH = 0; 
+....................    Flag_RM = 0; 
+....................     
+.................... } 
+....................  
+.................... void drv_gpio_RM(){ 
+....................   //printf(lcd_putc,"\fVELOCIDAD MEDIA\n"); 
+....................   set_pwm1_duty(17);//21 
+*
+0AAD:  MOVLW  11
+0AAE:  MOVWF  15
+*
+0AD3:  MOVLW  11
+0AD4:  MOVWF  15
+*
+0BD0:  MOVLW  11
+0BD1:  MOVWF  15
+*
+0BF6:  MOVLW  11
+0BF7:  MOVWF  15
+....................   //output_e(0b00000000); 
+....................    
+....................    //output_c(0b00000000); 
+....................    //output_e(0b00000000);  
+....................    output_bit(SOLENOIDE3,0); 
+*
+0AAF:  BCF    06.3
+*
+0AD5:  BCF    06.3
+*
+0BD2:  BCF    06.3
+*
+0BF8:  BCF    06.3
+....................    //output_bit(RH,1); 
+....................     
+....................    Flag_RM = 1; 
+*
+0AB0:  BSF    2B.4
+*
+0AD6:  BSF    2B.4
+*
+0BD3:  BSF    2B.4
+*
+0BF9:  BSF    2B.4
+....................    //Flag_RM = 1; 
+.................... } 
+....................  
+.................... void drv_gpio_SolComp(){ 
+....................   //output_c(0b00000000); 
+....................   //output_e(0b00000000); 
+....................   output_bit(SOLENOIDE3,0); 
+....................   output_bit(SOL_COMPUERTA,1); 
+....................   set_pwm1_duty(5); 
+.................... } 
+....................  
+.................... void drv_gpio_BomExt(){ 
+....................   //output_c(0b00000000); 
+....................   //output_e(0b00000000); 
+....................   output_bit(SOLENOIDE3,0); 
+*
+0BB7:  BCF    06.3
+*
+0C79:  BCF    06.3
+....................   output_bit(BOMB_EXTRACCION,1); 
+*
+0BB8:  BSF    09.1
+0BB9:  BSF    03.5
+0BBA:  BCF    09.1
+*
+0C7A:  BSF    09.1
+0C7B:  BSF    03.5
+0C7C:  BCF    09.1
+....................   ////set_pwm1_duty(5); 
+.................... } 
+....................  
+.................... void drv_gpio_BomExt_STF(){ 
+....................    //output_c(0b00000000);  
+....................    //output_e(0b00000000); 
+....................    output_bit(SOLENOIDE3,0); 
+*
+0C8D:  BCF    06.3
+....................    output_bit(STF,1); 
+0C8E:  BSF    07.4
+....................    output_bit(BOMB_EXTRACCION,1); 
+0C8F:  BSF    09.1
+0C90:  BSF    03.5
+0C91:  BCF    09.1
+....................    ////output_bit(RH,1); 
+....................    set_pwm1_duty(315); 
+0C92:  MOVLW  4E
+0C93:  BCF    03.5
+0C94:  MOVWF  15
+0C95:  MOVF   17,W
+0C96:  ANDLW  CF
+0C97:  IORLW  30
+0C98:  MOVWF  17
+....................    Flag_RH = 1; 
+0C99:  BSF    2B.3
+....................    Flag_RM = 0; 
+0C9A:  BCF    2B.4
+....................  
+....................    //output_e(0b00000010); // Bomba de Extraccion 
+....................    //set_pwm1_duty(400);   // RH 
+....................    //set_pwm1_duty(5); 
+.................... } 
+....................  
+.................... void drv_gpio_Solenoide12(){ 
+....................   //output_c(0b00110000); 
+....................   //output_c(0b00000000); 
+....................   //output_e(0b00000000); 
+....................   output_bit(SOLENOIDE3,0); 
+*
+0A52:  BCF    06.3
+....................   output_bit(SOLENOIDE1,1); 
+0A53:  BSF    07.0
+....................   output_bit(SOLENOIDE2,1); 
+0A54:  BSF    07.1
+....................   //set_pwm1_duty(5); 
+.................... } 
+....................  
+.................... void drv_gpio_Solenoide34(){ 
+....................   //output_c(0b11000000); 
+....................   //output_c(0b00000000); 
+....................   //output_e(0b00000000); 
+....................    
+....................   output_bit(SOLENOIDE3,1); 
+....................   output_bit(SOLENOIDE4,1); 
+....................  
+....................   ////set_pwm1_duty(5); 
+.................... } 
+....................  
+.................... void drv_gpio_lavado(){ 
+....................  
+....................    //if(Flag_salir != 1){drv_gpio_Solenoide12(); drv_gpio_seg(20,true);} 
+....................    //if(Flag_salir != 1){while(drv_gpio_level(50)==0){drv_gpio_Solenoide12();drv_gpio_seg(1,true);}} 
+....................     
+....................    /* 
+....................    while(drv_gpio_level(Status_agua)==0 && Flag_salir != 1){ 
+....................       drv_gpio_Solenoide12(); 
+....................       drv_gpio_seg(1,true); 
+....................    } 
+....................    drv_gpio_off(); 
+....................    */ 
+....................     
+....................    //if(Flag_salir != 1){while(drv_gpio_level(NIVEL_MEDIO)==0){drv_gpio_Solenoide12();drv_gpio_seg(1,true);}} 
+....................    //if(Flag_salir != 1){while(drv_gpio_level(Status_agua)==0){drv_gpio_Solenoide12();drv_gpio_seg(1,true);}} 
+....................    //min2 = 0; 
+....................    //T_lavado = Status_tiempo*0.4; 
+....................    Status_fase = FASE_LAVADO; 
+*
+0AA1:  MOVLW  01
+0AA2:  MOVWF  3D
+....................    ///drv_gpio_NF(); 
+....................     
+....................    ////for(minutos = 0; minutos<T_lavado;minutos++){  
+....................     
+....................       ////for(Flag_ciclo = 0;Flag_ciclo<2;Flag_ciclo++)//{ 
+....................    while(min<T_lavado && Flag_salir != 1){ 
+0AA3:  MOVF   48,W
+0AA4:  SUBWF  36,W
+0AA5:  BTFSC  03.0
+0AA6:  GOTO   2F6
+0AA7:  BTFSC  2A.6
+0AA8:  GOTO   2F6
+....................       if(Flag_salir != 1){drv_gpio_STF()           ; drv_gpio_RM();drv_gpio_seg(5,true); } 
+0AA9:  BTFSC  2A.6
+0AAA:  GOTO   2B6
+*
+0AB1:  MOVLW  05
+0AB2:  MOVWF  4C
+0AB3:  MOVLW  01
+0AB4:  MOVWF  4D
+0AB5:  CALL   140
+....................       if(Flag_salir != 1){drv_gpio_off_nf_ON()     ;while(Flag_rotacion == 0){drv_gpio_off_nf_ON();drv_gpio_seg(1,true);}}//drv_gpio_seg(6,true);} 
+0AB6:  BTFSC  2A.6
+0AB7:  GOTO   2C5
+0AB8:  BCF    0A.3
+0AB9:  CALL   7C7
+0ABA:  BSF    0A.3
+0ABB:  BTFSC  2B.1
+0ABC:  GOTO   2C5
+0ABD:  BCF    0A.3
+0ABE:  CALL   7C7
+0ABF:  BSF    0A.3
+0AC0:  MOVLW  01
+0AC1:  MOVWF  4C
+0AC2:  MOVWF  4D
+0AC3:  CALL   140
+0AC4:  GOTO   2BB
+....................           
+....................       if(Flag_salir != 1){drv_gpio_off_nf_ON()     ;drv_gpio_seg(2,true);} 
+0AC5:  BTFSC  2A.6
+0AC6:  GOTO   2CF
+0AC7:  BCF    0A.3
+0AC8:  CALL   7C7
+0AC9:  BSF    0A.3
+0ACA:  MOVLW  02
+0ACB:  MOVWF  4C
+0ACC:  MOVLW  01
+0ACD:  MOVWF  4D
+0ACE:  CALL   140
+....................           
+....................       if(Flag_salir != 1){drv_gpio_STR()           ; drv_gpio_RM();drv_gpio_seg(5,true);} 
+0ACF:  BTFSC  2A.6
+0AD0:  GOTO   2DC
+*
+0AD7:  MOVLW  05
+0AD8:  MOVWF  4C
+0AD9:  MOVLW  01
+0ADA:  MOVWF  4D
+0ADB:  CALL   140
+....................       if(Flag_salir != 1){drv_gpio_off_nf_ON()     ; while(Flag_rotacion == 0){drv_gpio_off_nf_ON();drv_gpio_seg(1,true);}}//drv_gpio_seg(10,true);} 
+0ADC:  BTFSC  2A.6
+0ADD:  GOTO   2EB
+0ADE:  BCF    0A.3
+0ADF:  CALL   7C7
+0AE0:  BSF    0A.3
+0AE1:  BTFSC  2B.1
+0AE2:  GOTO   2EB
+0AE3:  BCF    0A.3
+0AE4:  CALL   7C7
+0AE5:  BSF    0A.3
+0AE6:  MOVLW  01
+0AE7:  MOVWF  4C
+0AE8:  MOVWF  4D
+0AE9:  CALL   140
+0AEA:  GOTO   2E1
+....................           
+....................       if(Flag_salir != 1){drv_gpio_off_nf_ON()     ; drv_gpio_seg(2,true);} 
+0AEB:  BTFSC  2A.6
+0AEC:  GOTO   2F5
+0AED:  BCF    0A.3
+0AEE:  CALL   7C7
+0AEF:  BSF    0A.3
+0AF0:  MOVLW  02
+0AF1:  MOVWF  4C
+0AF2:  MOVLW  01
+0AF3:  MOVWF  4D
+0AF4:  CALL   140
+....................    } 
+0AF5:  GOTO   2A3
+....................        ////}   
+....................    ////} 
+....................     
+....................  
+....................     
+....................    if(Status_modo==MODO_LAVADO){ 
+0AF6:  MOVF   2D,W
+0AF7:  SUBLW  02
+0AF8:  BTFSS  03.2
+0AF9:  GOTO   300
+....................       Flag_salir = 0; 
+0AFA:  BCF    2A.6
+....................       Status_modo = SIN_MODO ; 
+0AFB:  CLRF   2D
+....................       Status_fase = SIN_FASE; 
+0AFC:  CLRF   3D
+....................       drv_gpio_off(); 
+0AFD:  BCF    0A.3
+0AFE:  CALL   294
+0AFF:  BSF    0A.3
+....................    } 
+....................  
+....................    ////drv_gpio_off(); 
+.................... } 
+0B00:  RETURN
+....................  
+.................... void drv_gpio_enjuague(){ 
+....................  
+....................    //min2 = 0; 
+....................    //drv_gpio_NF(); 
+....................     
+....................    if(Status_modo==MODO_AUTOMATICO){ 
+0B01:  DECFSZ 2D,W
+0B02:  GOTO   307
+....................       T_ciclo = T_lavado + T_enjuague; 
+0B03:  MOVF   49,W
+0B04:  ADDWF  48,W
+0B05:  MOVWF  4B
+....................    } 
+....................    else if(Status_modo == MODO_CENTRIFUGADO){ 
+0B06:  GOTO   331
+0B07:  MOVF   2D,W
+0B08:  SUBLW  03
+0B09:  BTFSS  03.2
+0B0A:  GOTO   331
+....................       T_ciclo = Status_tiempo*0.15; 
+0B0B:  CLRF   51
+0B0C:  MOVF   3A,W
+0B0D:  MOVWF  50
+0B0E:  BCF    0A.3
+0B0F:  CALL   29F
+0B10:  BSF    0A.3
+0B11:  MOVF   7A,W
+0B12:  MOVWF  53
+0B13:  MOVF   79,W
+0B14:  MOVWF  52
+0B15:  MOVF   78,W
+0B16:  MOVWF  51
+0B17:  MOVF   77,W
+0B18:  MOVWF  50
+0B19:  MOVLW  9A
+0B1A:  MOVWF  57
+0B1B:  MOVLW  99
+0B1C:  MOVWF  56
+0B1D:  MOVLW  19
+0B1E:  MOVWF  55
+0B1F:  MOVLW  7C
+0B20:  MOVWF  54
+0B21:  BCF    0A.3
+0B22:  CALL   2BC
+0B23:  BSF    0A.3
+0B24:  MOVF   7A,W
+0B25:  MOVWF  53
+0B26:  MOVF   79,W
+0B27:  MOVWF  52
+0B28:  MOVF   78,W
+0B29:  MOVWF  51
+0B2A:  MOVF   77,W
+0B2B:  MOVWF  50
+0B2C:  BCF    0A.3
+0B2D:  CALL   331
+0B2E:  BSF    0A.3
+0B2F:  MOVF   78,W
+0B30:  MOVWF  4B
+....................    } 
+....................     
+....................    for(repeticion = 0 ;repeticion<3;repeticion++){ 
+0B31:  CLRF   37
+0B32:  MOVF   37,W
+0B33:  SUBLW  02
+0B34:  BTFSS  03.0
+0B35:  GOTO   41D
+....................     
+....................       Status_fase = SIN_FASE ; 
+0B36:  CLRF   3D
+....................        
+....................       //T_ciclo = T_ciclo *(repeticion+1); 
+....................        
+....................       if(Status_modo==MODO_AUTOMATICO){ 
+0B37:  DECFSZ 2D,W
+0B38:  GOTO   350
+....................          //T_ciclo = T_lavado +(T_ciclo *(repeticion+1)); 
+....................          switch(repeticion){ 
+0B39:  MOVF   37,W
+0B3A:  BTFSC  03.2
+0B3B:  GOTO   343
+0B3C:  XORLW  01
+0B3D:  BTFSC  03.2
+0B3E:  GOTO   347
+0B3F:  XORLW  03
+0B40:  BTFSC  03.2
+0B41:  GOTO   34B
+0B42:  GOTO   34F
+....................             case 0: 
+....................                T_ciclo = T_lavado + 4; 
+0B43:  MOVLW  04
+0B44:  ADDWF  48,W
+0B45:  MOVWF  4B
+....................                break; 
+0B46:  GOTO   34F
+....................             case 1: 
+....................                T_ciclo = T_lavado + 8; 
+0B47:  MOVLW  08
+0B48:  ADDWF  48,W
+0B49:  MOVWF  4B
+....................                break; 
+0B4A:  GOTO   34F
+....................             case 2: 
+....................                T_ciclo = T_lavado + 13; 
+0B4B:  MOVLW  0D
+0B4C:  ADDWF  48,W
+0B4D:  MOVWF  4B
+....................                break; 
+0B4E:  GOTO   34F
+....................          } 
+....................       } 
+....................        
+....................       else if(Status_modo == MODO_CENTRIFUGADO){ 
+0B4F:  GOTO   367
+0B50:  MOVF   2D,W
+0B51:  SUBLW  03
+0B52:  BTFSS  03.2
+0B53:  GOTO   367
+....................          //T_ciclo = T_ciclo *(repeticion+1); 
+....................          switch(repeticion){ 
+0B54:  MOVF   37,W
+0B55:  BTFSC  03.2
+0B56:  GOTO   35E
+0B57:  XORLW  01
+0B58:  BTFSC  03.2
+0B59:  GOTO   361
+0B5A:  XORLW  03
+0B5B:  BTFSC  03.2
+0B5C:  GOTO   364
+0B5D:  GOTO   367
+....................             case 0: 
+....................                T_ciclo = 4; 
+0B5E:  MOVLW  04
+0B5F:  MOVWF  4B
+....................                break; 
+0B60:  GOTO   367
+....................             case 1: 
+....................                T_ciclo = 8; 
+0B61:  MOVLW  08
+0B62:  MOVWF  4B
+....................                break; 
+0B63:  GOTO   367
+....................             case 2: 
+....................                T_ciclo = 13; 
+0B64:  MOVLW  0D
+0B65:  MOVWF  4B
+....................                break; 
+0B66:  GOTO   367
+....................          } 
+....................       } 
+....................          // Se abre la bomba de agua hasta que el nivel de agua sea cero     
+....................       while(drv_gpio_vaciar(SIN_NIVEL)==0 && Flag_salir != 1){drv_gpio_NF();drv_gpio_BomExt();drv_gpio_seg(1,true);} 
+0B67:  MOVLW  11
+0B68:  MOVWF  4C
+*
+0BB0:  MOVF   78,F
+0BB1:  BTFSS  03.2
+0BB2:  GOTO   3C1
+0BB3:  BTFSC  2A.6
+0BB4:  GOTO   3C1
+*
+0BBB:  MOVLW  01
+0BBC:  BCF    03.5
+0BBD:  MOVWF  4C
+0BBE:  MOVWF  4D
+0BBF:  CALL   140
+0BC0:  GOTO   367
+....................       // se apaga la bomba de extraccion 
+....................       //if(Flag_salir != 1){drv_gpio_off();}  
+....................        
+....................       // Se llena hasta el nivel indicado 
+....................       // while(drv_gpio_level(Status_agua0) && Flag_salir != 1){ 
+....................        
+....................       /* 
+....................       while(drv_gpio_level(Status_agua)==0 && Flag_salir != 1){ 
+....................          drv_gpio_Solenoide12(); 
+....................          drv_gpio_seg(1,true); 
+....................       } 
+....................        
+....................       drv_gpio_off(); 
+....................       */ 
+....................        
+....................       // T_lavado = Status_tiempo*0.4 
+....................       // T_centrifugado = Status_tiempo*0.15; 
+....................       // T_enjuague = Status_tiempo*0.45; 
+....................       ////T_enjuague = Status_tiempo*0.15; 
+....................       Status_fase = FASE_LAVADO; 
+0BC1:  MOVLW  01
+0BC2:  MOVWF  3D
+....................        
+....................       drv_gpio_off_nf_ON(); 
+0BC3:  BCF    0A.3
+0BC4:  CALL   7C7
+0BC5:  BSF    0A.3
+....................          ////for(Flag_ciclo = 0;Flag_ciclo<2;Flag_ciclo++){ 
+....................         while(min<T_ciclo && Flag_salir != 1){ 
+0BC6:  MOVF   4B,W
+0BC7:  SUBWF  36,W
+0BC8:  BTFSC  03.0
+0BC9:  GOTO   419
+0BCA:  BTFSC  2A.6
+0BCB:  GOTO   419
+....................             if(Flag_salir != 1){drv_gpio_STF()        ; drv_gpio_RM();drv_gpio_seg(5,true); } 
+0BCC:  BTFSC  2A.6
+0BCD:  GOTO   3D9
+*
+0BD4:  MOVLW  05
+0BD5:  MOVWF  4C
+0BD6:  MOVLW  01
+0BD7:  MOVWF  4D
+0BD8:  CALL   140
+....................             if(Flag_salir != 1){drv_gpio_off_nf_ON()  ; while(Flag_rotacion == 0){drv_gpio_off_nf_ON();drv_gpio_seg(1,true);}}//drv_gpio_seg(6,true);} 
+0BD9:  BTFSC  2A.6
+0BDA:  GOTO   3E8
+0BDB:  BCF    0A.3
+0BDC:  CALL   7C7
+0BDD:  BSF    0A.3
+0BDE:  BTFSC  2B.1
+0BDF:  GOTO   3E8
+0BE0:  BCF    0A.3
+0BE1:  CALL   7C7
+0BE2:  BSF    0A.3
+0BE3:  MOVLW  01
+0BE4:  MOVWF  4C
+0BE5:  MOVWF  4D
+0BE6:  CALL   140
+0BE7:  GOTO   3DE
+....................              
+....................             if(Flag_salir != 1){drv_gpio_off_nf_ON()  ; drv_gpio_seg(2,true);} 
+0BE8:  BTFSC  2A.6
+0BE9:  GOTO   3F2
+0BEA:  BCF    0A.3
+0BEB:  CALL   7C7
+0BEC:  BSF    0A.3
+0BED:  MOVLW  02
+0BEE:  MOVWF  4C
+0BEF:  MOVLW  01
+0BF0:  MOVWF  4D
+0BF1:  CALL   140
+....................              
+....................             if(Flag_salir != 1){drv_gpio_STR()        ; drv_gpio_RM();drv_gpio_seg(5,true);} 
+0BF2:  BTFSC  2A.6
+0BF3:  GOTO   3FF
+*
+0BFA:  MOVLW  05
+0BFB:  MOVWF  4C
+0BFC:  MOVLW  01
+0BFD:  MOVWF  4D
+0BFE:  CALL   140
+....................             if(Flag_salir != 1){drv_gpio_off_nf_ON()  ; while(Flag_rotacion == 0){drv_gpio_off_nf_ON();drv_gpio_seg(1,true);}}//drv_gpio_seg(10,true);} 
+0BFF:  BTFSC  2A.6
+0C00:  GOTO   40E
+0C01:  BCF    0A.3
+0C02:  CALL   7C7
+0C03:  BSF    0A.3
+0C04:  BTFSC  2B.1
+0C05:  GOTO   40E
+0C06:  BCF    0A.3
+0C07:  CALL   7C7
+0C08:  BSF    0A.3
+0C09:  MOVLW  01
+0C0A:  MOVWF  4C
+0C0B:  MOVWF  4D
+0C0C:  CALL   140
+0C0D:  GOTO   404
+....................              
+....................             if(Flag_salir != 1){drv_gpio_off_nf_ON()  ; drv_gpio_seg(2,true);} 
+0C0E:  BTFSC  2A.6
+0C0F:  GOTO   418
+0C10:  BCF    0A.3
+0C11:  CALL   7C7
+0C12:  BSF    0A.3
+0C13:  MOVLW  02
+0C14:  MOVWF  4C
+0C15:  MOVLW  01
+0C16:  MOVWF  4D
+0C17:  CALL   140
+....................              
+....................         }        
+0C18:  GOTO   3C6
+....................        output_bit(SOLENOIDE1,0); 
+0C19:  BCF    07.0
+....................        output_bit(SOLENOIDE2,0); 
+0C1A:  BCF    07.1
+....................    }   
+0C1B:  INCF   37,F
+0C1C:  GOTO   332
+.................... } 
+....................  
+....................  
+.................... void drv_gpio_centrifugado(){ 
+....................  
+....................    //if(Flag_salir != 1){drv_gpio_BomExt(); drv_gpio_seg(10,true);}//if(Flag_salir == 1);break; 
+....................    //if(Flag_salir != 1){drv_gpio_off();}  
+....................    //if(Flag_salir != 1){while(drv_gpio_vaciar(SIN_NIVEL)==0){drv_gpio_BomExt();drv_gpio_seg(1,true);}} 
+....................     
+....................    drv_gpio_enjuague(); 
+....................     
+....................    output_bit(SOLENOIDE1,0); 
+0C1D:  BCF    07.0
+....................    output_bit(SOLENOIDE2,0); 
+0C1E:  BCF    07.1
+....................     
+....................    Status_fase = SIN_FASE; 
+0C1F:  CLRF   3D
+....................     
+....................    if(Status_modo==MODO_AUTOMATICO){ 
+0C20:  DECFSZ 2D,W
+0C21:  GOTO   425
+....................       T_ciclo = Status_tiempo;//T_lavado + T_enjuague + T_centrifugado; 
+0C22:  MOVF   3A,W
+0C23:  MOVWF  4B
+....................    } 
+....................    else if(Status_modo == MODO_CENTRIFUGADO){ 
+0C24:  GOTO   42B
+0C25:  MOVF   2D,W
+0C26:  SUBLW  03
+0C27:  BTFSS  03.2
+0C28:  GOTO   42B
+....................       T_ciclo = Status_tiempo_cent;//T_enjuague + T_enjuague; 
+0C29:  MOVF   3B,W
+0C2A:  MOVWF  4B
+....................    } 
+....................        
+....................    while(drv_gpio_vaciar(SIN_NIVEL)==0 && Flag_salir != 1){drv_gpio_BomExt();drv_gpio_seg(1,true);} 
+0C2B:  MOVLW  11
+0C2C:  MOVWF  4C
+*
+0C74:  MOVF   78,F
+0C75:  BTFSS  03.2
+0C76:  GOTO   483
+0C77:  BTFSC  2A.6
+0C78:  GOTO   483
+*
+0C7D:  MOVLW  01
+0C7E:  BCF    03.5
+0C7F:  MOVWF  4C
+0C80:  MOVWF  4D
+0C81:  CALL   140
+0C82:  GOTO   42B
+....................     
+....................    //T_centrifugado = (Status_tiempo*0.15) + 1; 
+....................     
+....................    ////for(minutos = 0; minutos<T_centrifugado;minutos++){ 
+....................      //if(Flag_salir != 1){ drv_gpio_STF(); drv_gpio_RH();   drv_gpio_seg(60,true);}drv_gpio_BomExt_STF() 
+....................    while(min<T_ciclo && Flag_salir != 1){ 
+0C83:  MOVF   4B,W
+0C84:  SUBWF  36,W
+0C85:  BTFSC  03.0
+0C86:  GOTO   4A5
+0C87:  BTFSC  2A.6
+0C88:  GOTO   4A5
+....................      output_bit(SOLENOIDE1,0); 
+0C89:  BCF    07.0
+....................      output_bit(SOLENOIDE2,0); 
+0C8A:  BCF    07.1
+....................      if(Flag_salir != 1){ drv_gpio_BomExt_STF();drv_gpio_NF();drv_gpio_seg(60,true);} 
+0C8B:  BTFSC  2A.6
+0C8C:  GOTO   4A3
+*
+0C9D:  MOVLW  3C
+0C9E:  MOVWF  4C
+0C9F:  MOVLW  01
+0CA0:  MOVWF  4D
+0CA1:  CALL   140
+....................      else{break;}//if(Flag_salir == 1);break; 
+0CA2:  GOTO   4A4
+0CA3:  GOTO   4A5
+....................    } 
+0CA4:  GOTO   483
+....................    ////}  
+....................     
+....................    Flag_salir = 0; 
+0CA5:  BCF    2A.6
+....................    Status_modo = SIN_MODO ; 
+0CA6:  CLRF   2D
+....................    Status_fase = SIN_FASE; 
+0CA7:  CLRF   3D
+....................    drv_gpio_off(); 
+0CA8:  BCF    0A.3
+0CA9:  CALL   294
+0CAA:  BSF    0A.3
+....................    //if(Status_modo == MODO_AUTOMATICO){drv_gpio_SolComp();drv_gpio_seg(5,true);drv_gpio_off();Status_modo = SIN_MODO ;} 
+.................... } 
+0CAB:  RETURN
+....................  
+....................  
+....................  
+.................... void drv_gpio_automatico2(){ 
+....................  
+....................    drv_gpio_lavado(); 
+*
+0CE1:  CALL   2A1
+....................    drv_gpio_centrifugado(); 
+0CE2:  CALL   301
+....................  
+.................... } 
+....................  
+.................... void drv_gpio_automatico(){ 
+....................  
+....................    /////////////////////////////////////////////////////////////////// 
+....................    //LAVADO 
+....................    //while(drv_gpio_level(Status_agua) && Flag_salir != 1){ 
+....................     
+....................    /* 
+....................    while(drv_gpio_level(Status_agua)==0 && Flag_salir != 1){ 
+....................       drv_gpio_Solenoide12(); 
+....................       drv_gpio_seg(1,true); 
+....................    } 
+....................    drv_gpio_off(); 
+....................    */ 
+....................     
+....................    //if(Flag_salir != 1){while(drv_gpio_level(NIVEL_MEDIO)==0){drv_gpio_Solenoide12();drv_gpio_seg(1,true);}} 
+....................    //if(Flag_salir != 1){while(drv_gpio_level(Status_agua)==0){drv_gpio_Solenoide12();drv_gpio_seg(1,true);}} 
+....................    drv_gpio_NF(); 
+....................    ////min2 = 0; 
+....................    T_lavado = Status_tiempo*0.4; 
+....................    Status_fase = FASE_LAVADO; 
+....................    /* 
+....................    #define FASE_LAVADO           1 //  
+....................    #define FASE_ENJUAGUE         2 //  
+....................    #define FASE_CENTRIFUGADO     3 //  
+....................     
+....................    */ 
+....................    // T_centrifugado = Status_tiempo*0.15; 
+....................    // T_enjuague = Status_tiempo*0.45; 
+....................     
+....................    for(minutos = 0; minutos<T_lavado;minutos++){  
+....................     
+....................       for(Flag_ciclo = 0;Flag_ciclo<2;Flag_ciclo++){ 
+....................        
+....................          if(Flag_salir != 1){drv_gpio_STF()              ; drv_gpio_RM();drv_gpio_seg(5,true); } 
+....................          if(Flag_salir != 1){drv_gpio_off_nf_ON()        ; while(Flag_rotacion == 0){drv_gpio_off_nf_ON();drv_gpio_seg(1,true);}}//drv_gpio_seg(6,true);} 
+....................           
+....................          if(Flag_salir != 1){drv_gpio_off_nf_ON()        ; drv_gpio_seg(2,true);} 
+....................           
+....................          if(Flag_salir != 1){drv_gpio_STR()              ; drv_gpio_RM();drv_gpio_seg(5,true);} 
+....................          if(Flag_salir != 1){drv_gpio_off_nf_ON()        ; while(Flag_rotacion == 0){drv_gpio_off_nf_ON();drv_gpio_seg(1,true);}}//drv_gpio_seg(10,true);} 
+....................           
+....................          if(Flag_salir != 1){drv_gpio_off_nf_ON()        ; drv_gpio_seg(2,true);} 
+....................       } 
+....................    } 
+....................    //FIN LAVADO 
+....................    /////////////////////////////////////////////////////////////////// 
+....................     
+....................    /////////////////////////////////////////////////////////////////// 
+....................    //min2 = 0; 
+....................    drv_gpio_enjuague(); 
+....................    /////////////////////////////////////////////////////////////////// 
+....................     
+....................    /////////////////////////////////////////////////////////////////// 
+....................    //CENTRIGUGADO 
+....................    //min2 = 0; 
+....................     
+....................    Status_fase = SIN_FASE; 
+....................     
+....................    while(drv_gpio_vaciar(SIN_NIVEL)==0 && Flag_salir != 1){drv_gpio_BomExt();drv_gpio_NF();drv_gpio_seg(1,true);} 
+....................     
+....................    //T_centrifugado = (Status_tiempo*0.15)+1;  
+....................     
+....................    for(minutos = 0; minutos<T_centrifugado;minutos++){ 
+....................         
+....................      //if(Flag_salir != 1){ drv_gpio_STF(); drv_gpio_RH();   drv_gpio_seg(60,true);}drv_gpio_BomExt_STF() 
+....................      if(Flag_salir != 1){ drv_gpio_BomExt_STF();drv_gpio_NF();   drv_gpio_seg(60,true);} 
+....................      else{break;}//if(Flag_salir == 1);break; 
+....................    }  
+....................    //drv_gpio_centrifugado(); 
+....................    //FIN CEBTRIGUGADO 
+....................    /////////////////////////////////////////////////////////////////// 
+....................     
+....................    Flag_salir = 0;    
+....................    drv_gpio_SolComp(); 
+....................    drv_gpio_seg(5,true); 
+....................    drv_gpio_off(); 
+....................    Status_modo = SIN_MODO ; 
+....................    Status_fase = SIN_FASE; 
+....................    //drv_gpio_SolComp(); 
+.................... } 
+....................  
+.................... void drv_gpio_control_time(){ 
+....................     
+....................    seg++; 
+*
+0952:  INCF   35,F
+....................    if(seg>59){ 
+0953:  MOVF   35,W
+0954:  SUBLW  3B
+0955:  BTFSC  03.0
+0956:  GOTO   159
+....................       min++; 
+0957:  INCF   36,F
+....................       //min2++; 
+....................       seg = 0; 
+0958:  CLRF   35
+....................    } 
+....................     
+....................  
+....................    // Si pasan 5min y no se llega al nivel de agua muestra  
+....................    // FALLA EN SUMINISTRO DE AGUA 
+....................    //if(min == 5 && drv_gpio_level(50)==0){ 
+....................    ////if((min2 == 100 && drv_gpio_level(Status_agua)==0)&&(Status_modo==MODO_LAVADO || Status_modo== MODO_AUTOMATICO || Status_fase == FASE_LAVADO)){ 
+....................    /* 
+....................       printf(lcd_putc,"\fFALLA SUMINISTRO",); 
+....................       lcd_gotoxy(1,2); 
+....................       printf(lcd_putc,"    DE AGUA\n"); 
+....................       drv_gpio_off(); 
+....................       //Flag_salir =1 ;      
+....................       */ 
+....................    ////} 
+....................     
+....................    ////else{ 
+....................     
+....................       //////////////////////////////////////////////////////// 
+....................       // Si se cumple el tiempo seleccionado Activa el Flag salir y apaga todas 
+....................       // Las Salidas 
+....................       //if(Status_modo == MODO_LAVADO && min == T_lavado){Flag_salir =1;drv_gpio_off();output_bit(SOLENOIDE3,0);output_bit(RH,0);} 
+....................       //if(Status_modo == MODO_CENTRIFUGADO && min == Status_tiempo_cent){Flag_salir =1;drv_gpio_off();output_bit(SOLENOIDE3,0);output_bit(RH,0);} 
+....................       //if(min == Status_tiempo){Flag_salir =1;drv_gpio_off();output_bit(SOLENOIDE3,0);output_bit(RH,0);} 
+....................        
+....................       switch(Status_modo){ 
+0959:  MOVF   2D,W
+095A:  XORLW  01
+095B:  BTFSC  03.2
+095C:  GOTO   164
+095D:  XORLW  03
+095E:  BTFSC  03.2
+095F:  GOTO   16D
+0960:  XORLW  01
+0961:  BTFSC  03.2
+0962:  GOTO   176
+0963:  GOTO   17F
+....................        
+....................          case MODO_AUTOMATICO: 
+....................             if(min == Status_tiempo){Flag_salir =1;drv_gpio_off();} 
+0964:  MOVF   3A,W
+0965:  SUBWF  36,W
+0966:  BTFSS  03.2
+0967:  GOTO   16C
+0968:  BSF    2A.6
+0969:  BCF    0A.3
+096A:  CALL   294
+096B:  BSF    0A.3
+....................             break; 
+096C:  GOTO   17F
+....................          case MODO_LAVADO: 
+....................             if(min == T_lavado){Flag_salir =1;drv_gpio_off();} 
+096D:  MOVF   48,W
+096E:  SUBWF  36,W
+096F:  BTFSS  03.2
+0970:  GOTO   175
+0971:  BSF    2A.6
+0972:  BCF    0A.3
+0973:  CALL   294
+0974:  BSF    0A.3
+....................             break; 
+0975:  GOTO   17F
+....................          case MODO_CENTRIFUGADO: 
+....................             if(min == Status_tiempo_cent){Flag_salir =1;drv_gpio_off();} 
+0976:  MOVF   3B,W
+0977:  SUBWF  36,W
+0978:  BTFSS  03.2
+0979:  GOTO   17E
+097A:  BSF    2A.6
+097B:  BCF    0A.3
+097C:  CALL   294
+097D:  BSF    0A.3
+....................             break; 
+097E:  GOTO   17F
+....................       } 
+....................       /* 
+....................       if(Status_modo == MODO_AUTOMATICO && min == Status_tiempo){ 
+....................          Flag_salir =1;drv_gpio_off();output_bit(SOLENOIDE3,0); 
+....................       } 
+....................       else if(Status_modo == MODO_LAVADO && min == Status_tiempo){ 
+....................       T_ciclo == T_enjuague; 
+....................          } 
+....................       else if(Status_modo == MODO_CENTRIFUGADO){ 
+....................       T_ciclo == T_enjuague; 
+....................          } 
+....................           
+....................       */ 
+....................       //////////////////////////////////////////////////////// 
+....................        
+....................       lcd_gotoxy(1,2); 
+097F:  MOVLW  01
+0980:  MOVWF  57
+0981:  MOVLW  02
+0982:  MOVWF  58
+....................        
+....................       if(seg<10){ 
+*
+0996:  MOVF   35,W
+0997:  SUBLW  09
+0998:  BTFSS  03.0
+0999:  GOTO   1CE
+....................          printf(lcd_putc,"Tiempo:%2dm:0%ds\n",min,seg); 
+099A:  MOVLW  40
+099B:  BSF    03.6
+099C:  MOVWF  0D
+099D:  MOVLW  01
+099E:  MOVWF  0F
+099F:  BCF    03.0
+09A0:  MOVLW  07
+09A1:  BCF    03.6
+09A2:  MOVWF  50
+09A3:  BCF    0A.3
+09A4:  CALL   385
+09A5:  BSF    0A.3
+09A6:  MOVF   36,W
+09A7:  MOVWF  50
+09A8:  MOVLW  11
+09A9:  MOVWF  51
+09AA:  BCF    0A.3
+09AB:  CALL   3D3
+09AC:  BSF    0A.3
+09AD:  MOVLW  6D
+09AE:  MOVWF  56
+09AF:  BCF    0A.3
+09B0:  CALL   350
+09B1:  BSF    0A.3
+09B2:  MOVLW  3A
+09B3:  MOVWF  56
+09B4:  BCF    0A.3
+09B5:  CALL   350
+09B6:  BSF    0A.3
+09B7:  MOVLW  30
+09B8:  MOVWF  56
+09B9:  BCF    0A.3
+09BA:  CALL   350
+09BB:  BSF    0A.3
+09BC:  MOVF   35,W
+09BD:  MOVWF  50
+09BE:  MOVLW  1F
+09BF:  MOVWF  51
+09C0:  BCF    0A.3
+09C1:  CALL   3D3
+09C2:  BSF    0A.3
+09C3:  MOVLW  73
+09C4:  MOVWF  56
+09C5:  BCF    0A.3
+09C6:  CALL   350
+09C7:  BSF    0A.3
+09C8:  MOVLW  0A
+09C9:  MOVWF  56
+09CA:  BCF    0A.3
+09CB:  CALL   350
+09CC:  BSF    0A.3
+....................       } 
+....................       else{ 
+09CD:  GOTO   1FC
+....................          printf(lcd_putc,"Tiempo:%2dm:%2ds\n",min,seg); 
+09CE:  MOVLW  49
+09CF:  BSF    03.6
+09D0:  MOVWF  0D
+09D1:  MOVLW  01
+09D2:  MOVWF  0F
+09D3:  BCF    03.0
+09D4:  MOVLW  07
+09D5:  BCF    03.6
+09D6:  MOVWF  50
+09D7:  BCF    0A.3
+09D8:  CALL   385
+09D9:  BSF    0A.3
+09DA:  MOVF   36,W
+09DB:  MOVWF  50
+09DC:  MOVLW  11
+09DD:  MOVWF  51
+09DE:  BCF    0A.3
+09DF:  CALL   3D3
+09E0:  BSF    0A.3
+09E1:  MOVLW  6D
+09E2:  MOVWF  56
+09E3:  BCF    0A.3
+09E4:  CALL   350
+09E5:  BSF    0A.3
+09E6:  MOVLW  3A
+09E7:  MOVWF  56
+09E8:  BCF    0A.3
+09E9:  CALL   350
+09EA:  BSF    0A.3
+09EB:  MOVF   35,W
+09EC:  MOVWF  50
+09ED:  MOVLW  11
+09EE:  MOVWF  51
+09EF:  BCF    0A.3
+09F0:  CALL   3D3
+09F1:  BSF    0A.3
+09F2:  MOVLW  73
+09F3:  MOVWF  56
+09F4:  BCF    0A.3
+09F5:  CALL   350
+09F6:  BSF    0A.3
+09F7:  MOVLW  0A
+09F8:  MOVWF  56
+09F9:  BCF    0A.3
+09FA:  CALL   350
+09FB:  BSF    0A.3
+....................       } 
+....................    ////}    
+.................... } 
+....................  
+.................... void drv_gpio_seg(int segundos,int1 showtime){ 
+....................  
+.................... int i,j; 
+....................  
+....................    if(Flag_salir ==1 || Status_modo == SIN_MODO){ 
+*
+0940:  BTFSC  2A.6
+0941:  GOTO   145
+0942:  MOVF   2D,F
+0943:  BTFSS  03.2
+0944:  GOTO   147
+....................       goto fin; 
+0945:  GOTO   29F
+....................    }  
+....................    
+....................   else{ 
+0946:  GOTO   29F
+....................       for(i = 1; i <=segundos; i++){ 
+0947:  MOVLW  01
+0948:  MOVWF  4E
+0949:  MOVF   4E,W
+094A:  SUBWF  4C,W
+094B:  BTFSS  03.0
+094C:  GOTO   29F
+....................           
+....................          if(showtime==1){ 
+094D:  DECFSZ 4D,W
+094E:  GOTO   261
+....................             drv_gpio_mode_time(); 
+094F:  BCF    0A.3
+0950:  CALL   45F
+0951:  BSF    0A.3
+....................             drv_gpio_control_time(); 
+....................             drv_gpio_test_nivel(); 
+....................          }  
+....................          else{ 
+*
+0A60:  GOTO   28A
+....................             //drv_gpio_mode_time(); 
+....................             printf(lcd_putc,"\f<<INVERSION DE>>",); 
+0A61:  MOVLW  52
+0A62:  BSF    03.6
+0A63:  MOVWF  0D
+0A64:  MOVLW  01
+0A65:  MOVWF  0F
+0A66:  BCF    0A.3
+0A67:  BCF    03.6
+0A68:  CALL   585
+0A69:  BSF    0A.3
+....................             lcd_gotoxy(1,2); 
+0A6A:  MOVLW  01
+0A6B:  MOVWF  57
+0A6C:  MOVLW  02
+0A6D:  MOVWF  58
+....................             printf(lcd_putc,"    <<GIRO>>\n"); 
+*
+0A81:  MOVLW  5B
+0A82:  BSF    03.6
+0A83:  MOVWF  0D
+0A84:  MOVLW  01
+0A85:  MOVWF  0F
+0A86:  BCF    0A.3
+0A87:  BCF    03.6
+0A88:  CALL   585
+0A89:  BSF    0A.3
+....................          } 
+....................          for(j = 0; j <=10; j++){ 
+0A8A:  CLRF   4F
+0A8B:  MOVF   4F,W
+0A8C:  SUBLW  0A
+0A8D:  BTFSS  03.0
+0A8E:  GOTO   29D
+....................             delay_ms(100); 
+0A8F:  MOVLW  64
+0A90:  MOVWF  57
+0A91:  BCF    0A.3
+0A92:  CALL   1B5
+0A93:  BSF    0A.3
+....................             drv_gpio_pulsadores(); 
+0A94:  CALL   000
+....................            
+....................             if(Flag_salir ==1 || Status_modo == SIN_MODO){ 
+0A95:  BTFSC  2A.6
+0A96:  GOTO   29A
+0A97:  MOVF   2D,F
+0A98:  BTFSS  03.2
+0A99:  GOTO   29B
+....................                goto fin; 
+0A9A:  GOTO   29F
+....................             }      
+....................          } 
+0A9B:  INCF   4F,F
+0A9C:  GOTO   28B
+....................       } 
+0A9D:  INCF   4E,F
+0A9E:  GOTO   149
+....................    } 
+....................     
+....................    fin: 
+....................    i = 0; 
+0A9F:  CLRF   4E
+....................  
+.................... } 
+0AA0:  RETURN
+....................  
+.................... void drv_gpio_pulsadores(){ 
+....................  
+....................    drv_gpio_int_rb();      //Verifica los Botones para manejar el menu 
+....................    drv_gpio_lcd_menu();    // Muestra El menu activo 
+....................    drv_gpio_int_rb0(); 
+....................    drv_gpio_alarmas();     // Verifica cada 500ms la activacion de las Alarmas 1 y 2  
+....................    drv_gpio_ticks(); 
+....................    //drv_gpio_adc_modo();   
+.................... } 
+*
+093F:  RETURN
+....................  
+.................... void drv_gpio_ticks(){ 
+....................   // FRECUENCIMETRO DIGITAL 
+....................    
+....................    if(timeticks==10){   // Cada 10 interrupciones muestra los pulsos del motor 
+*
+0196:  MOVF   39,W
+0197:  SUBLW  0A
+0198:  BTFSS  03.2
+0199:  GOTO   1AA
+*
+0926:  MOVF   39,W
+0927:  SUBLW  0A
+0928:  BTFSS  03.2
+0929:  GOTO   13A
+....................                         // es decir cada 1 seg. cada desbordamiento tarda 100ms 
+....................                         // De Acuerdo a la Ecuacion: 
+....................                         // T = 4/Fosc*Preescaler(65536 - x) 
+....................                         // T = 1u*1(65536 - 0) 
+....................                  
+....................       contador = get_timer0();   // Obtiene la cantidad de pulsos en el timer 0 
+*
+019A:  MOVF   01,W
+019B:  CLRF   3F
+019C:  MOVWF  3E
+*
+092A:  MOVF   01,W
+092B:  CLRF   3F
+092C:  MOVWF  3E
+....................       contador=contador*2;       // El valor del timer se multiplica por el preescaler  
+*
+019D:  BCF    03.0
+019E:  RLF    3E,F
+019F:  RLF    3F,F
+*
+092D:  BCF    03.0
+092E:  RLF    3E,F
+092F:  RLF    3F,F
+....................                                  //minimo que es 2 
+....................       if(contador == 0)Flag_rotacion = 1;  
+*
+01A0:  MOVF   3E,F
+01A1:  BTFSS  03.2
+01A2:  GOTO   1A8
+01A3:  MOVF   3F,F
+01A4:  BTFSS  03.2
+01A5:  GOTO   1A8
+01A6:  BSF    2B.1
+*
+0930:  MOVF   3E,F
+0931:  BTFSS  03.2
+0932:  GOTO   138
+0933:  MOVF   3F,F
+0934:  BTFSS  03.2
+0935:  GOTO   138
+0936:  BSF    2B.1
+....................       else Flag_rotacion = 0;  
+*
+01A7:  GOTO   1A9
+01A8:  BCF    2B.1
+*
+0937:  GOTO   139
+0938:  BCF    2B.1
+....................       set_timer0(0); // Inicializa el timer 0 
+*
+01A9:  CLRF   01
+*
+0939:  CLRF   01
+....................     
+....................   } 
+....................       
+....................    timeticks++; // se incrementa w luego de la interrupcion, sus valores seran 0 0 1 
+*
+01AA:  INCF   39,F
+*
+093A:  INCF   39,F
+....................    if(timeticks>10){timeticks = 0;} 
+*
+01AB:  MOVF   39,W
+01AC:  SUBLW  0A
+01AD:  BTFSS  03.0
+01AE:  CLRF   39
+*
+093B:  MOVF   39,W
+093C:  SUBLW  0A
+093D:  BTFSS  03.0
+093E:  CLRF   39
+.................... } 
+....................  
+.................... void drv_gpio_mode_time(){ 
+*
+017B:  DATA 00,00
+....................  
+....................        T_lavado = Status_tiempo*0.4; 
+*
+045F:  CLRF   51
+0460:  MOVF   3A,W
+0461:  MOVWF  50
+0462:  CALL   29F
+0463:  MOVF   7A,W
+0464:  MOVWF  53
+0465:  MOVF   79,W
+0466:  MOVWF  52
+0467:  MOVF   78,W
+0468:  MOVWF  51
+0469:  MOVF   77,W
+046A:  MOVWF  50
+046B:  MOVLW  CD
+046C:  MOVWF  57
+046D:  MOVLW  CC
+046E:  MOVWF  56
+046F:  MOVLW  4C
+0470:  MOVWF  55
+0471:  MOVLW  7D
+0472:  MOVWF  54
+0473:  CALL   2BC
+0474:  MOVF   7A,W
+0475:  MOVWF  53
+0476:  MOVF   79,W
+0477:  MOVWF  52
+0478:  MOVF   78,W
+0479:  MOVWF  51
+047A:  MOVF   77,W
+047B:  MOVWF  50
+047C:  CALL   331
+047D:  MOVF   78,W
+047E:  MOVWF  48
+....................        T_enjuague = Status_tiempo*0.45; 
+047F:  CLRF   51
+0480:  MOVF   3A,W
+0481:  MOVWF  50
+0482:  CALL   29F
+0483:  MOVF   7A,W
+0484:  MOVWF  53
+0485:  MOVF   79,W
+0486:  MOVWF  52
+0487:  MOVF   78,W
+0488:  MOVWF  51
+0489:  MOVF   77,W
+048A:  MOVWF  50
+048B:  MOVLW  66
+048C:  MOVWF  57
+048D:  MOVWF  56
+048E:  MOVWF  55
+048F:  MOVLW  7D
+0490:  MOVWF  54
+0491:  CALL   2BC
+0492:  MOVF   7A,W
+0493:  MOVWF  53
+0494:  MOVF   79,W
+0495:  MOVWF  52
+0496:  MOVF   78,W
+0497:  MOVWF  51
+0498:  MOVF   77,W
+0499:  MOVWF  50
+049A:  CALL   331
+049B:  MOVF   78,W
+049C:  MOVWF  49
+....................        T_centrifugado = Status_tiempo*0.15; 
+049D:  CLRF   51
+049E:  MOVF   3A,W
+049F:  MOVWF  50
+04A0:  CALL   29F
+04A1:  MOVF   7A,W
+04A2:  MOVWF  53
+04A3:  MOVF   79,W
+04A4:  MOVWF  52
+04A5:  MOVF   78,W
+04A6:  MOVWF  51
+04A7:  MOVF   77,W
+04A8:  MOVWF  50
+04A9:  MOVLW  9A
+04AA:  MOVWF  57
+04AB:  MOVLW  99
+04AC:  MOVWF  56
+04AD:  MOVLW  19
+04AE:  MOVWF  55
+04AF:  MOVLW  7C
+04B0:  MOVWF  54
+04B1:  CALL   2BC
+04B2:  MOVF   7A,W
+04B3:  MOVWF  53
+04B4:  MOVF   79,W
+04B5:  MOVWF  52
+04B6:  MOVF   78,W
+04B7:  MOVWF  51
+04B8:  MOVF   77,W
+04B9:  MOVWF  50
+04BA:  CALL   331
+04BB:  MOVF   78,W
+04BC:  MOVWF  4A
+....................         
+....................        Status_tiempo_cent = Status_tiempo*0.6; 
+04BD:  CLRF   51
+04BE:  MOVF   3A,W
+04BF:  MOVWF  50
+04C0:  CALL   29F
+04C1:  MOVF   7A,W
+04C2:  MOVWF  53
+04C3:  MOVF   79,W
+04C4:  MOVWF  52
+04C5:  MOVF   78,W
+04C6:  MOVWF  51
+04C7:  MOVF   77,W
+04C8:  MOVWF  50
+04C9:  MOVLW  9A
+04CA:  MOVWF  57
+04CB:  MOVLW  99
+04CC:  MOVWF  56
+04CD:  MOVLW  19
+04CE:  MOVWF  55
+04CF:  MOVLW  7E
+04D0:  MOVWF  54
+04D1:  CALL   2BC
+04D2:  MOVF   7A,W
+04D3:  MOVWF  53
+04D4:  MOVF   79,W
+04D5:  MOVWF  52
+04D6:  MOVF   78,W
+04D7:  MOVWF  51
+04D8:  MOVF   77,W
+04D9:  MOVWF  50
+04DA:  CALL   331
+04DB:  MOVF   78,W
+04DC:  MOVWF  3B
+....................         
+....................         
+....................    switch(Status_modo){ 
+04DD:  MOVF   2D,W
+04DE:  XORLW  01
+04DF:  BTFSC  03.2
+04E0:  GOTO   4E8
+04E1:  XORLW  03
+04E2:  BTFSC  03.2
+04E3:  GOTO   4FE
+04E4:  XORLW  01
+04E5:  BTFSC  03.2
+04E6:  GOTO   514
+04E7:  GOTO   52A
+....................     
+....................        case MODO_AUTOMATICO: 
+....................          //printf(lcd_putc,"\f <<AUTOMATICO>>\n");     
+....................          //Status_tiempo = 30; 
+....................          printf(lcd_putc,"\fAUTOMATICO:%dm\n",Status_tiempo);   
+04E8:  MOVLW  62
+04E9:  BSF    03.6
+04EA:  MOVWF  0D
+04EB:  MOVLW  01
+04EC:  MOVWF  0F
+04ED:  BCF    03.0
+04EE:  MOVLW  0C
+04EF:  BCF    03.6
+04F0:  MOVWF  50
+04F1:  CALL   385
+04F2:  MOVF   3A,W
+04F3:  MOVWF  50
+04F4:  MOVLW  1F
+04F5:  MOVWF  51
+04F6:  CALL   3D3
+04F7:  MOVLW  6D
+04F8:  MOVWF  56
+04F9:  CALL   350
+04FA:  MOVLW  0A
+04FB:  MOVWF  56
+04FC:  CALL   350
+....................          //printf(lcd_putc,"\fAUTOMATICO:%dm\n",Status_agua);   
+....................       break;   
+04FD:  GOTO   52A
+....................        
+....................       case MODO_LAVADO: 
+....................          //Status_tiempo = 15; 
+....................           
+....................         // Status_tiempo = T_lavado; 
+....................          printf(lcd_putc,"\fLAVADO: %dm\n",T_lavado); 
+04FE:  MOVLW  6B
+04FF:  BSF    03.6
+0500:  MOVWF  0D
+0501:  MOVLW  01
+0502:  MOVWF  0F
+0503:  BCF    03.0
+0504:  MOVLW  09
+0505:  BCF    03.6
+0506:  MOVWF  50
+0507:  CALL   385
+0508:  MOVF   48,W
+0509:  MOVWF  50
+050A:  MOVLW  1F
+050B:  MOVWF  51
+050C:  CALL   3D3
+050D:  MOVLW  6D
+050E:  MOVWF  56
+050F:  CALL   350
+0510:  MOVLW  0A
+0511:  MOVWF  56
+0512:  CALL   350
+....................          //printf(lcd_putc,"\f   <<LAVADO>>\n"); 
+....................          break; 
+0513:  GOTO   52A
+....................           
+....................       case MODO_CENTRIFUGADO: 
+....................          //Status_tiempo = 15; 
+....................          //printf(lcd_putc,"\f<<CENTRIFUGADO>>\n");  
+....................          //T_centrifugado = Status_tiempo*0.6; 
+....................          //Status_tiempo = T_centrifugado; 
+....................          //Status_tiempo_cent = T_centrifugado; 
+....................          //Status_tiempo_cent = Status_tiempo*0.6; 
+....................          printf(lcd_putc,"\fCENTRIFUGADO:%dm\n",Status_tiempo_cent);  
+0514:  MOVLW  72
+0515:  BSF    03.6
+0516:  MOVWF  0D
+0517:  MOVLW  01
+0518:  MOVWF  0F
+0519:  BCF    03.0
+051A:  MOVLW  0E
+051B:  BCF    03.6
+051C:  MOVWF  50
+051D:  CALL   385
+051E:  MOVF   3B,W
+051F:  MOVWF  50
+0520:  MOVLW  1F
+0521:  MOVWF  51
+0522:  CALL   3D3
+0523:  MOVLW  6D
+0524:  MOVWF  56
+0525:  CALL   350
+0526:  MOVLW  0A
+0527:  MOVWF  56
+0528:  CALL   350
+....................          break; 
+0529:  GOTO   52A
+....................                
+....................           
+....................      }   
+.................... } 
+052A:  RETURN
+....................  
+.................... //GPIO ADC 
+....................  
+.................... int16 drv_gpio_adc_read(int channel){ 
+052B:  CLRF   53
+052C:  CLRF   52
+052D:  BCF    54.0
+....................  
+....................    int16 medicion=0;                     //variable entera que contendra la medicion del convertidor AD 
+....................    int1 done = 0;                        //Contendra 1 si el convertidor terminó de convertir 
+....................     
+....................    setup_adc_ports(AN0_AN1_AN3); // CANALES ANALOGICOS AN0 AN1 Y AN3 
+052E:  BSF    03.5
+052F:  BCF    1F.0
+0530:  BCF    1F.1
+0531:  BSF    1F.2
+0532:  BCF    1F.3
+....................    setup_adc(ADC_CLOCK_INTERNAL); // conversion analogica con el reloj interno 
+0533:  BCF    1F.6
+0534:  BCF    03.5
+0535:  BSF    1F.6
+0536:  BSF    1F.7
+0537:  BSF    03.5
+0538:  BSF    1F.7
+0539:  BCF    03.5
+053A:  BSF    1F.0
+....................    set_adc_channel (channel);          //Establecemos el canal de lectura analogica 
+053B:  RLF    51,W
+053C:  MOVWF  77
+053D:  RLF    77,F
+053E:  RLF    77,F
+053F:  MOVLW  F8
+0540:  ANDWF  77,F
+0541:  MOVF   1F,W
+0542:  ANDLW  C7
+0543:  IORWF  77,W
+0544:  MOVWF  1F
+....................    delay_ms(1);                       //a small delay is required after setting the channel 
+0545:  MOVLW  01
+0546:  MOVWF  57
+0547:  CALL   1B5
+....................    medicion=read_adc ();               // Hace conversión AD  
+0548:  BSF    1F.2
+0549:  BTFSC  1F.2
+054A:  GOTO   549
+054B:  BSF    03.5
+054C:  MOVF   1E,W
+054D:  BCF    03.5
+054E:  MOVWF  52
+054F:  MOVF   1E,W
+0550:  MOVWF  53
+....................    done = adc_done();                  //done = 1 si el convertidor termino de convertir 
+0551:  BCF    54.0
+0552:  BTFSS  1F.2
+0553:  BSF    54.0
+....................    while(!done) 
+....................    { 
+0554:  BTFSC  54.0
+0555:  GOTO   55A
+....................       done = adc_done();               //Mientras no acabe de convertir se seguira ciclando 
+0556:  BCF    54.0
+0557:  BTFSS  1F.2
+0558:  BSF    54.0
+....................    } 
+0559:  GOTO   554
+....................    setup_adc (adc_off);                //detenemos al convertidor 
+055A:  BCF    1F.0
+....................    //medicion = (medicion/1023.0)*5; 
+....................    return medicion;    
+055B:  MOVF   52,W
+055C:  MOVWF  78
+055D:  MOVF   53,W
+055E:  MOVWF  79
+.................... } 
+055F:  RETURN
+....................  
+.................... void drv_gpio_adc_lcd(){ 
+*
+018B:  DATA 00,00
+....................  
+....................    Vtemperatura = drv_gpio_adc_read(0); 
+....................    Vnivel = drv_gpio_adc_read(1); 
+....................    printf(lcd_putc,"\fTEMP : %2.1fv\n",(Vtemperatura/1023.0)*5); 
+....................    printf(lcd_putc,"NIVEL: %2.1fv\n",(Vnivel/1023.0)*5); 
+....................    delay_ms(100); 
+....................  
+.................... } 
+....................  
+.................... void drv_gpio_adc_modo(){ 
+....................  
+....................    if(time>45){           
+....................       if(Status_modo!=SIN_MODO){drv_gpio_adc_lcd();} 
+....................    } 
+....................       
+....................    time++; // se incrementa w luego de la interrupcion, sus valores seran 0 0 1 
+....................    if(time>45){time=0;} 
+....................     
+.................... } 
+....................  
+.................... int1 drv_gpio_level(int percent){ 
+....................  
+....................    ADCNivel = drv_gpio_adc_read(1); 
+*
+0A06:  MOVLW  01
+0A07:  MOVWF  51
+0A08:  BCF    0A.3
+0A09:  CALL   52B
+0A0A:  BSF    0A.3
+0A0B:  MOVF   79,W
+0A0C:  MOVWF  45
+0A0D:  MOVF   78,W
+0A0E:  MOVWF  44
+....................    ADCrule = (1023*percent)/100; 
+0A0F:  MOVLW  03
+0A10:  MOVWF  52
+0A11:  MOVLW  FF
+0A12:  MOVWF  51
+0A13:  CLRF   54
+0A14:  MOVF   50,W
+0A15:  MOVWF  53
+*
+0A2A:  MOVF   79,W
+0A2B:  MOVWF  52
+0A2C:  MOVF   78,W
+0A2D:  MOVWF  51
+0A2E:  MOVF   79,W
+0A2F:  MOVWF  54
+0A30:  MOVF   78,W
+0A31:  MOVWF  53
+0A32:  CLRF   56
+0A33:  MOVLW  64
+0A34:  MOVWF  55
+0A35:  BCF    0A.3
+0A36:  CALL   560
+0A37:  BSF    0A.3
+0A38:  MOVF   79,W
+0A39:  MOVWF  47
+0A3A:  MOVF   78,W
+0A3B:  MOVWF  46
+....................     
+....................    if(ADCNivel < ADCrule){ 
+0A3C:  MOVF   45,W
+0A3D:  SUBWF  47,W
+0A3E:  BTFSS  03.0
+0A3F:  GOTO   248
+0A40:  BTFSS  03.2
+0A41:  GOTO   246
+0A42:  MOVF   46,W
+0A43:  SUBWF  44,W
+0A44:  BTFSC  03.0
+0A45:  GOTO   248
+....................       Flag_adc_nivel = 0; 
+0A46:  BCF    2B.2
+....................    } 
+....................    else{ 
+0A47:  GOTO   249
+....................       Flag_adc_nivel = 1; 
+0A48:  BSF    2B.2
+....................        
+....................    } 
+....................    return Flag_adc_nivel; 
+0A49:  MOVLW  00
+0A4A:  BTFSC  2B.2
+0A4B:  MOVLW  01
+0A4C:  MOVWF  78
+....................     
+.................... } 
+....................  
+.................... int1 drv_gpio_vaciar(int percent){ 
+....................  
+....................    ADCNivel = drv_gpio_adc_read(1); 
+*
+0B69:  MOVLW  01
+0B6A:  MOVWF  51
+0B6B:  BCF    0A.3
+0B6C:  CALL   52B
+0B6D:  BSF    0A.3
+0B6E:  MOVF   79,W
+0B6F:  MOVWF  45
+0B70:  MOVF   78,W
+0B71:  MOVWF  44
+*
+0C2D:  MOVLW  01
+0C2E:  MOVWF  51
+0C2F:  BCF    0A.3
+0C30:  CALL   52B
+0C31:  BSF    0A.3
+0C32:  MOVF   79,W
+0C33:  MOVWF  45
+0C34:  MOVF   78,W
+0C35:  MOVWF  44
+....................    ADCrule = (1023*percent)/100; 
+*
+0B72:  MOVLW  03
+0B73:  MOVWF  52
+0B74:  MOVLW  FF
+0B75:  MOVWF  51
+0B76:  CLRF   54
+0B77:  MOVF   4C,W
+0B78:  MOVWF  53
+*
+0B8D:  MOVF   79,W
+0B8E:  MOVWF  4E
+0B8F:  MOVF   78,W
+0B90:  MOVWF  4D
+0B91:  MOVF   79,W
+0B92:  MOVWF  54
+0B93:  MOVF   78,W
+0B94:  MOVWF  53
+0B95:  CLRF   56
+0B96:  MOVLW  64
+0B97:  MOVWF  55
+0B98:  BCF    0A.3
+0B99:  CALL   560
+0B9A:  BSF    0A.3
+0B9B:  MOVF   79,W
+0B9C:  MOVWF  47
+0B9D:  MOVF   78,W
+0B9E:  MOVWF  46
+*
+0C36:  MOVLW  03
+0C37:  MOVWF  52
+0C38:  MOVLW  FF
+0C39:  MOVWF  51
+0C3A:  CLRF   54
+0C3B:  MOVF   4C,W
+0C3C:  MOVWF  53
+*
+0C51:  MOVF   79,W
+0C52:  MOVWF  4E
+0C53:  MOVF   78,W
+0C54:  MOVWF  4D
+0C55:  MOVF   79,W
+0C56:  MOVWF  54
+0C57:  MOVF   78,W
+0C58:  MOVWF  53
+0C59:  CLRF   56
+0C5A:  MOVLW  64
+0C5B:  MOVWF  55
+0C5C:  BCF    0A.3
+0C5D:  CALL   560
+0C5E:  BSF    0A.3
+0C5F:  MOVF   79,W
+0C60:  MOVWF  47
+0C61:  MOVF   78,W
+0C62:  MOVWF  46
+....................     
+....................    if(ADCNivel <= ADCrule){ 
+*
+0B9F:  MOVF   45,W
+0BA0:  SUBWF  47,W
+0BA1:  BTFSS  03.0
+0BA2:  GOTO   3AB
+0BA3:  BTFSS  03.2
+0BA4:  GOTO   3A9
+0BA5:  MOVF   44,W
+0BA6:  SUBWF  46,W
+0BA7:  BTFSS  03.0
+0BA8:  GOTO   3AB
+*
+0C63:  MOVF   45,W
+0C64:  SUBWF  47,W
+0C65:  BTFSS  03.0
+0C66:  GOTO   46F
+0C67:  BTFSS  03.2
+0C68:  GOTO   46D
+0C69:  MOVF   44,W
+0C6A:  SUBWF  46,W
+0C6B:  BTFSS  03.0
+0C6C:  GOTO   46F
+....................       Flag_adc_nivel = 1; 
+*
+0BA9:  BSF    2B.2
+*
+0C6D:  BSF    2B.2
+....................    } 
+....................    else{ 
+*
+0BAA:  GOTO   3AC
+*
+0C6E:  GOTO   470
+....................       Flag_adc_nivel = 0; 
+*
+0BAB:  BCF    2B.2
+*
+0C6F:  BCF    2B.2
+....................    } 
+....................    return Flag_adc_nivel; 
+*
+0BAC:  MOVLW  00
+0BAD:  BTFSC  2B.2
+0BAE:  MOVLW  01
+0BAF:  MOVWF  78
+*
+0C70:  MOVLW  00
+0C71:  BTFSC  2B.2
+0C72:  MOVLW  01
+0C73:  MOVWF  78
+....................  
+.................... } 
+....................  
+.................... //void drv_gpio_test_nivel(){} 
+....................  
+.................... void drv_gpio_test_nivel(){ 
+....................  
+....................    switch(Status_fase){ 
+*
+09FC:  MOVF   3D,W
+09FD:  XORLW  01
+09FE:  BTFSC  03.2
+09FF:  GOTO   204
+0A00:  XORLW  01
+0A01:  BTFSC  03.2
+0A02:  GOTO   25F
+0A03:  GOTO   260
+....................     
+....................       ///case FASE_ENJUAGUE : 
+....................       case FASE_LAVADO : 
+....................          if(drv_gpio_level(Status_agua)==0 && Flag_salir != 1){ 
+0A04:  MOVF   3C,W
+0A05:  MOVWF  50
+*
+0A4D:  MOVF   78,F
+0A4E:  BTFSS  03.2
+0A4F:  GOTO   256
+0A50:  BTFSC  2A.6
+0A51:  GOTO   256
+....................             drv_gpio_Solenoide12(); 
+....................          } 
+....................          else{ 
+*
+0A55:  GOTO   25E
+....................             seg_solenoide++; 
+0A56:  INCF   38,F
+....................             //delay_ms(1000); 
+....................             if(seg_solenoide==12){ 
+0A57:  MOVF   38,W
+0A58:  SUBLW  0C
+0A59:  BTFSS  03.2
+0A5A:  GOTO   25E
+....................                output_bit(SOLENOIDE1,0); 
+0A5B:  BCF    07.0
+....................                output_bit(SOLENOIDE2,0); 
+0A5C:  BCF    07.1
+....................                seg_solenoide = 0; 
+0A5D:  CLRF   38
+....................             } 
+....................              
+....................          } 
+....................          break; 
+0A5E:  GOTO   260
+....................        
+....................       case SIN_FASE: 
+....................        
+....................          break; 
+0A5F:  GOTO   260
+....................       } 
+....................        
+....................        
+.................... } 
+....................  
+.................... /////////////////////////////////////////////////////////////////////////////// 
+....................  
+.................... /* 
+....................    #define SIN_MODO              0 
+....................    #define MODO_AUTOMATICO       1 
+....................    #define MODO_LAVADO           2 
+....................    #define MODO_CENTRIFUGADO     3 
+....................     
+....................       #define FASE_LAVADO        1 //  
+....................    #define FASE_ENJUAGUE         2 //  
+....................    #define FASE_CENTRIFUGADO     3 //  
+....................     
+....................     
+....................     
+.................... int T_lavado,T_enjuague,T_centrifugado; 
+....................  
+.................... T_lavado = Status_tiempo*0.4 
+.................... T_centrifugado = Status_tiempo*0.15; 
+.................... T_enjuague = Status_tiempo*0.45 
+....................  
+.................... */ 
+....................  
+....................    #include <system.c> 
+....................  
+.................... #endif 
+....................  
+....................  
+....................  
+.................... int1 timetm1 = 0; 
+.................... //int1 timetm2 = 0; 
+....................  
+.................... void main_config(); 
+....................  
+.................... //INTERRUPCIONES 
+....................  
+.................... #int_rb 
+.................... Void Rb4_Rb7_ISR(){ 
+....................  
+.................... } 
+....................  
+.................... /*Interrupcion por RB4-RB7*/ 
+*
+018C:  BCF    0B.0
+018D:  BCF    0A.3
+018E:  BCF    0A.4
+018F:  GOTO   025
+.................... #int_ext 
+.................... void RB0_ISR(){ 
+....................  
+.................... } 
+....................   
+.................... /*Interrupcion por timer1*/ 
+....................  
+0190:  BCF    0B.1
+0191:  BCF    0A.3
+0192:  BCF    0A.4
+0193:  GOTO   025
+.................... #int_timer1 
+.................... void timer1_isr(void) 
+.................... { 
+....................    if(timetm1==1){    
+0194:  BTFSS  2B.5
+0195:  GOTO   1AF
+....................       drv_gpio_ticks(); 
+....................    }        
+....................    timetm1++;      
+*
+01AF:  MOVLW  20
+01B0:  XORWF  2B,F
+.................... } 
+....................  
+.................... /* 
+.................... #int_timer2 
+.................... void timer2_isr(void) 
+.................... { 
+....................  
+....................    if(Flag_RM ==1){ 
+....................       output_toggle(RH);  
+....................    } 
+....................     
+.................... } 
+.................... */ 
+....................  
+01B1:  BCF    0C.0
+01B2:  BCF    0A.3
+01B3:  BCF    0A.4
+01B4:  GOTO   025
+.................... void main(){ 
+*
+0CAC:  CLRF   04
+0CAD:  BCF    03.7
+0CAE:  MOVLW  1F
+0CAF:  ANDWF  03,F
+0CB0:  CLRF   39
+0CB1:  MOVLW  1E
+0CB2:  MOVWF  3A
+0CB3:  MOVLW  19
+0CB4:  MOVWF  3C
+0CB5:  CLRF   3D
+0CB6:  BCF    2B.5
+0CB7:  BSF    03.5
+0CB8:  BSF    1F.0
+0CB9:  BSF    1F.1
+0CBA:  BSF    1F.2
+0CBB:  BCF    1F.3
+0CBC:  MOVLW  07
+0CBD:  MOVWF  1C
+....................  
+....................    main_config(); // Configuracion inicial 
+*
+0CC1:  BCF    0A.3
+0CC2:  GOTO   222
+0CC3:  BSF    0A.3
+....................    //drv_lcd_show(); 
+....................  
+....................    Flag_btn_inicio = 1; 
+0CC4:  BSF    2A.0
+....................    Flag_sub_menu0 = 1;  
+0CC5:  BSF    2A.7
+....................    Flag_salir = 1; 
+0CC6:  BSF    2A.6
+....................    Status_modo = SIN_MODO ; 
+0CC7:  CLRF   2D
+....................     
+....................    drv_gpio_off(); 
+0CC8:  BCF    0A.3
+0CC9:  CALL   294
+0CCA:  BSF    0A.3
+....................    output_bit(SOLENOIDE3,0); 
+0CCB:  BCF    06.3
+....................    output_bit(RH,0); 
+0CCC:  BCF    07.2
+....................     
+....................     
+....................     
+.................... ///////////////////////////////////////////////       
+....................  
+....................    /* PLAN B 
+....................    main_config(); 
+....................    drv_gpio_off(); 
+....................    drv_gpio_clear(); 
+....................     
+....................    output_bit(SOLENOIDE3,0); 
+....................    output_bit(RH,0); 
+....................     
+....................    Flag_btn_inicio = 1; 
+....................    Flag_sub_menu0 = 1;  
+....................    Flag_salir = 1; 
+....................    Status_modo = SIN_MODO ; 
+....................    */ 
+....................     
+.................... ///////////////////////////////////////////////    
+....................     
+....................    //drv_gpio_clear(); 
+....................    //Flag_sub_menu0 = 1; 
+....................    //Flag_ejecutar = 0; 
+....................    //Status_opcion = 0; 
+....................     
+....................    //Flag_btn_inicio = 1; 
+....................    //Flag_sub_menu0 = 1;  
+....................    //Flag_salir = 1; 
+....................    //Status_modo = SIN_MODO ; 
+....................     
+....................    //output_c(0b00000000); 
+....................    //output_e(0b00000000); 
+....................    //drv_gpio_off(); 
+....................    //drv_gpio_clear(); 
+....................    //drv_gpio_adc_lcd(); 
+....................    //Status_modo = MODO_INICIO; 
+....................  
+....................    while(1){ 
+....................           
+....................       switch(Status_modo){ 
+0CCD:  MOVF   2D,W
+0CCE:  XORLW  02
+0CCF:  BTFSC  03.2
+0CD0:  GOTO   4DB
+0CD1:  XORLW  01
+0CD2:  BTFSC  03.2
+0CD3:  GOTO   4DE
+0CD4:  XORLW  02
+0CD5:  BTFSC  03.2
+0CD6:  GOTO   4E1
+0CD7:  XORLW  05
+0CD8:  BTFSC  03.2
+0CD9:  GOTO   4E5
+0CDA:  GOTO   4E6
+....................          case MODO_LAVADO: 
+....................             drv_gpio_lavado(); 
+0CDB:  CALL   2A1
+....................              
+....................             Status_modo = SIN_MODO; 
+0CDC:  CLRF   2D
+....................             break; 
+0CDD:  GOTO   4ED
+....................              
+....................          case MODO_CENTRIFUGADO: 
+....................             drv_gpio_centrifugado();    
+0CDE:  CALL   301
+....................             Status_modo = SIN_MODO; 
+0CDF:  CLRF   2D
+....................             break; 
+0CE0:  GOTO   4ED
+....................              
+....................           case MODO_AUTOMATICO: 
+....................              drv_gpio_automatico2(); 
+....................              Status_modo = SIN_MODO; 
+*
+0CE3:  CLRF   2D
+....................             break; 
+0CE4:  GOTO   4ED
+....................              
+....................            case MODO_INICIO: 
+....................                /* 
+....................                if(Flag_sub_menu0 == 0){ 
+....................                drv_gpio_pulsadores(); 
+....................                delay_ms(100);} 
+....................                */ 
+....................             break; 
+0CE5:  GOTO   4ED
+....................              
+....................           default: 
+....................             drv_gpio_pulsadores(); 
+0CE6:  CALL   000
+....................             delay_ms(100); 
+0CE7:  MOVLW  64
+0CE8:  MOVWF  57
+0CE9:  BCF    0A.3
+0CEA:  CALL   1B5
+0CEB:  BSF    0A.3
+....................             break; 
+0CEC:  GOTO   4ED
+....................         }         
+....................     }  
+0CED:  GOTO   4CD
+.................... } 
+....................  
+.................... void main_config(){ 
+....................  
+0CEE:  SLEEP
+....................    set_tris_d(0b00000000); 
+*
+0222:  MOVLW  00
+0223:  BSF    03.5
+0224:  MOVWF  08
+....................    set_tris_c(0b00000000); 
+0225:  MOVWF  07
+....................    set_tris_b(0b11110111); 
+0226:  MOVLW  F7
+0227:  MOVWF  06
+....................    set_tris_e(0b00000000);   
+0228:  BCF    09.0
+0229:  BCF    09.1
+022A:  BCF    09.2
+....................     
+....................    //enable_interrupts(int_ext);      // Habilito las interrupcio por RB0 
+....................    //enable_interrupts(int_rb);       // Habilito innterrupcion RB4 - RB7 
+....................  
+....................    enable_interrupts(int_timer1);   // Habilito la interrupcion por timer1 
+022B:  BSF    0C.0
+....................    //enable_interrupts(int_timer2);   // Habilito la interrupcion por timer1 
+....................    enable_interrupts(global);       // Habilitacion Global de interruociones 
+022C:  MOVLW  C0
+022D:  BCF    03.5
+022E:  IORWF  0B,F
+....................     
+....................    //ext_int_edge(0,H_TO_L);          // Config. Ext RB0  por flanco de subida 
+....................     
+....................    setup_timer_0(rtcc_ext_h_to_l | rtcc_div_2); /* Configuracion del timer 0 
+022F:  BSF    03.5
+0230:  MOVF   01,W
+0231:  ANDLW  C0
+0232:  IORLW  30
+0233:  MOVWF  01
+....................                                              como contador para detectar por 
+....................                                              flanco de bajada con un  
+....................                                              preescaler de 2 (Cuenta cada 
+....................                                              2us)*/ 
+....................    //setup_timer_1(t1_internal | t1_div_by_8);  
+....................    /* configuracion del timer 1 como            
+....................    Temporizador con un preescalerde 8 (cuenta cada 8us)*/ 
+....................                                               
+....................    setup_timer_1(t1_internal | t1_div_by_1);   
+0234:  MOVLW  85
+0235:  BCF    03.5
+0236:  MOVWF  10
+....................     
+....................    // Duty minimo = 5(1%), Duty Max = 500(100%)   
+....................    //Preescaler Timer 2 = 4 
+....................    //Frecuencia PWM 2000HZ 
+....................    setup_ccp1(CCP_PWM);  
+0237:  BCF    07.2
+0238:  MOVLW  0C
+0239:  MOVWF  17
+....................    setup_timer_2(T2_DIV_BY_4, 124, 1); 
+023A:  MOVLW  00
+023B:  MOVWF  78
+023C:  IORLW  05
+023D:  MOVWF  12
+023E:  MOVLW  7C
+023F:  BSF    03.5
+0240:  MOVWF  12
+....................                   // Inicializacion del modulo PWM 
+....................     
+....................    set_timer0(0);    //inicializacion del timer 0 
+0241:  BCF    03.5
+0242:  CLRF   01
+....................    set_pwm1_duty(5); 
+0243:  MOVLW  05
+0244:  MOVWF  15
+....................     
+....................    //output_b(0b00000000); 
+....................  
+.................... /*    
+....................    enable_interrupts(int_timer1);   // Habilito la interrupcion por timer1 
+....................    enable_interrupts(int_timer2);   // Habilito la interrupcion por timer1 
+....................    enable_interrupts(global);       // Habilitacion Global de interruociones 
+.................... */    
+....................  
+....................    output_c(0b00000000); 
+0245:  CLRF   07
+....................    output_e(0b00000000); 
+0246:  BSF    03.5
+0247:  BCF    09.0
+0248:  BCF    09.1
+0249:  BCF    09.2
+024A:  BCF    03.5
+024B:  CLRF   09
+....................    output_bit(SOLENOIDE3,0); 
+024C:  BCF    06.3
+....................     
+....................    delay_ms(100); 
+024D:  MOVLW  64
+024E:  MOVWF  57
+024F:  CALL   1B5
+....................     
+....................    lcd_init(); // Inicializacion de pantalla LCD 
+....................       
+.................... } 
+*
+0291:  BSF    0A.3
+0292:  BCF    0A.4
+0293:  GOTO   4C3 (RETURN)
+....................  
+....................  
+
+Configuration Fuses:
+   Word  1: 3F71   XT NOWDT PUT NODEBUG NOPROTECT BROWNOUT NOLVP NOCPD NOWRT

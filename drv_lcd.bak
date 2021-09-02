@@ -1,0 +1,48 @@
+#include "system.h"
+
+//int me = 0;
+void drv_lcd_show(){
+      printf(lcd_putc,"\f  <<PREPARADO>>\n");
+      delay_ms(2000);
+      //printf(lcd_putc,"\fTemp: 27c\n");
+      //printf(lcd_putc,"Nivel:...\n"); 
+      printf(lcd_putc,"\f    LAVADORA\n");
+      printf(lcd_putc,"PRESIONA(INICIO)\n"); 
+      delay_us(1000);
+     
+}
+
+void drv_lcd_show1(char * cmd){
+      printf(lcd_putc,"\f");
+      printf(lcd_putc,(char *)cmd);
+      printf(lcd_putc,"\n");
+
+}
+
+
+
+/*
+void drv_lcd_mensaje2(MensajeID mensajeID1,MensajeID mensajeID2){
+
+      printf(lcd_putc,"\f");
+      printf(lcd_putc,(char *)pMensaje[mensajeID1]);
+      printf(lcd_putc,"\n");
+      printf(lcd_putc,(char *)pMensaje[mensajeID2]);
+      printf(lcd_putc,"\n");
+//      printf(lcd_putc,"   (PLC WIFI)");
+      delay_ms(100);
+}
+
+
+void drv_lcd_mensaje(MensajeID mensajeID1){
+
+      printf(lcd_putc,"\f");
+      printf(lcd_putc,(char *)pMensaje[mensajeID1]);
+      printf(lcd_putc,"\n");
+      printf(lcd_putc,(char *)pMensaje[mensajeID1]);
+      printf(lcd_putc,"\n");
+//      printf(lcd_putc,"   (PLC WIFI)");
+      delay_ms(100);
+
+}
+*/

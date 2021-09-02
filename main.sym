@@ -1,0 +1,343 @@
+004     @WRITE_PROGRAM_MEMORY8.P1
+004-005 @READ_PROGRAM_MEMORY8.P2
+008     lcdlat
+008     lcd
+008     PSP_DATA
+015     CCP_1_LOW
+015     CCP_1
+016     CCP_1_HIGH
+01B     CCP_2
+01B     CCP_2_LOW
+01C     CCP_2_HIGH
+020     @INTERRUPT_AREA
+021     @INTERRUPT_AREA
+022     @INTERRUPT_AREA
+023     @INTERRUPT_AREA
+024     @INTERRUPT_AREA
+025     @INTERRUPT_AREA
+026     @INTERRUPT_AREA
+027     @INTERRUPT_AREA
+028-029 strtok.save
+02A.0   Flag_btn_inicio
+02A.1   Flag_btn_stop
+02A.2   Flag_btn_subir
+02A.3   Flag_btn_bajar
+02A.4   Flag_rb0
+02A.5   Flag_ejecutar
+02A.6   Flag_salir
+02A.7   Flag_sub_menu0
+02B.0   Flag_sub_menu1
+02B.1   Flag_rotacion
+02B.2   Flag_adc_nivel
+02B.3   Flag_RH
+02B.4   Flag_RM
+02B.5   timetm1
+02C     Flag_ciclo
+02D     Status_modo
+02E     Status_temp
+02F     Status_nivel
+030     Status_Opcion
+031     Status_Opcion1
+032     time
+033     segundos
+034     minutos
+035     seg
+036     min
+037     repeticion
+038     seg_solenoide
+039     timeticks
+03A     Status_tiempo
+03B     Status_tiempo_cent
+03C     Status_agua
+03D     Status_fase
+03E-03F contador
+040-041 Vtemperatura
+042-043 Vnivel
+044-045 ADCNivel
+046-047 ADCrule
+048     T_lavado
+049     T_enjuague
+04A     T_centrifugado
+04B     T_ciclo
+04C     drv_gpio_vaciar.percent
+04C     drv_gpio_seg.segundos
+04C     lcd_init.i
+04C     drv_gpio_lavado.@SCRATCH1
+04C     drv_gpio_enjuague.@SCRATCH1
+04C     drv_gpio_centrifugado.@SCRATCH1
+04D     drv_gpio_seg.showtime
+04D     lcd_init.@SCRATCH1
+04D     drv_gpio_vaciar.@SCRATCH1
+04E     drv_gpio_seg.i
+04E     drv_gpio_vaciar.@SCRATCH2
+04F     drv_gpio_seg.j
+050-053 @SFTOI.P1
+050     drv_gpio_level.percent
+050     @PRINTF_D_93.P1
+050     @PSTRINGCN7_93.P2
+050-053 @MULFF.P3
+050-051 @ITOF.P4
+050     @PSTRINGC7_93.@SCRATCH1
+050     drv_gpio_alarmas.@SCRATCH1
+050     drv_gpio_int_rb0.@SCRATCH1
+050     drv_gpio_int_rb.@SCRATCH1
+050     drv_gpio_status_subir.@SCRATCH1
+050     drv_gpio_status_bajar.@SCRATCH1
+050     drv_gpio_menu1.@SCRATCH1
+050     drv_gpio_menu0.@SCRATCH1
+050     drv_gpio_submenu_tiempo.@SCRATCH1
+050     drv_gpio_submenu_nivel.@SCRATCH1
+050     drv_gpio_submenu_temp.@SCRATCH1
+050     drv_gpio_seg.@SCRATCH1
+050     drv_gpio_test_nivel.@SCRATCH1
+051-052 @MUL1616.P1
+051     @PRINTF_D_93.P2
+051     drv_gpio_adc_read.channel
+051     @PSTRINGC7_93.@SCRATCH2
+051     drv_gpio_int_rb0.@SCRATCH2
+051     @PSTRINGCN7_93.@SCRATCH1
+051     drv_gpio_level.@SCRATCH1
+052-053 drv_gpio_adc_read.medicion
+052     @PSTRINGC7_93.@SCRATCH3
+052     @PSTRINGCN7_93.@SCRATCH2
+052     @PRINTF_D_93.@SCRATCH1
+052     drv_gpio_level.@SCRATCH2
+053-054 @DIV1616.P1
+053-054 @MUL1616.P2
+053     @PSTRINGCN7_93.@SCRATCH3
+053     @PRINTF_D_93.@SCRATCH2
+054.0   drv_gpio_adc_read.done
+054-057 @MULFF.P1
+054     @PRINTF_D_93.@SCRATCH3
+055-056 @DIV1616.P1
+055     @PRINTF_D_93.@SCRATCH4
+055     @MUL1616.@SCRATCH1
+056     @DIV88.P1
+056     lcd_putc.c
+057     lcd_gotoxy.x
+057     @DIV88.P1
+057     @delay_ms1.P2
+057     @DIV1616.@SCRATCH1
+058     lcd_gotoxy.y
+058     @MULFF.@SCRATCH1
+058     @DIV88.@SCRATCH1
+059     lcd_gotoxy.address
+059     @MULFF.@SCRATCH2
+05A     lcd_gotoxy.@SCRATCH1
+05A     @MULFF.@SCRATCH3
+05B     lcd_send_byte.address
+05B     @MULFF.@SCRATCH4
+05C     lcd_send_byte.n
+05C     @MULFF.@SCRATCH5
+05D     lcd_read_byte.low
+05D     lcd_send_byte.@SCRATCH1
+05E     lcd_read_byte.high
+05E     lcd_send_nibble.n
+05F     lcd_read_byte.@SCRATCH1
+060     timer1_isr.@SCRATCH1
+077     @SCRATCH
+078     @SCRATCH
+078     _RETURN_
+079     @SCRATCH
+07A     @SCRATCH
+07F     @INTERRUPT_AREA
+088     lcdtris
+09C.6   C1OUT
+09C.7   C2OUT
+0FF     @INTERRUPT_AREA
+10D-10E @WRITE_PROGRAM_MEMORY8.P1
+10D-10E @READ_PROGRAM_MEMORY8.P2
+17F     @INTERRUPT_AREA
+1FF     @INTERRUPT_AREA
+27F     @INTERRUPT_AREA
+2FF     @INTERRUPT_AREA
+37F     @INTERRUPT_AREA
+3FF     @INTERRUPT_AREA
+47F     @INTERRUPT_AREA
+4FF     @INTERRUPT_AREA
+57F     @INTERRUPT_AREA
+5FF     @INTERRUPT_AREA
+67F     @INTERRUPT_AREA
+6FF     @INTERRUPT_AREA
+77F     @INTERRUPT_AREA
+7FF     @INTERRUPT_AREA
+87F     @INTERRUPT_AREA
+8FF     @INTERRUPT_AREA
+97F     @INTERRUPT_AREA
+9FF     @INTERRUPT_AREA
+A7F     @INTERRUPT_AREA
+AFF     @INTERRUPT_AREA
+B7F     @INTERRUPT_AREA
+BFF     @INTERRUPT_AREA
+C7F     @INTERRUPT_AREA
+CFF     @INTERRUPT_AREA
+D7F     @INTERRUPT_AREA
+DFF     @INTERRUPT_AREA
+E7F     @INTERRUPT_AREA
+EFF     @INTERRUPT_AREA
+F7F     @INTERRUPT_AREA
+FFF     @INTERRUPT_AREA
+
+ROM Allocation:
+01B5  @delay_ms1
+003F  LCD_INIT_STRING
+01CB  lcd_read_byte
+01E0  lcd_read_nibble
+0278  lcd_send_nibble
+01CA  lcd_send_byte
+0250  lcd_init
+0A6E  lcd_gotoxy
+0350  lcd_putc
+0047  @const194
+0585  @PSTRINGC7_93
+0050  @const196
+0058  @const197
+08FC  drv_gpio_alarmas
+0061  @const298
+006A  @const299
+08BC  drv_gpio_int_rb0
+0073  @const300
+007B  @const301
+0083  @const302
+008C  @const303
+0800  drv_gpio_int_rb
+0095  @const304
+0837  drv_gpio_status_subir
+086B  drv_gpio_status_bajar
+0893  drv_gpio_lcd_menu
+08A1  drv_gpio_menu1
+0716  drv_gpio_menu0
+009D  @const306
+00A4  @const307
+00A8  @const309
+00AE  @const310
+00B3  @const312
+00BB  @const313
+00C2  @const315
+00C9  @const316
+00D0  @const318
+00D4  @const319
+00D8  @const321
+00DC  @const322
+07BD  @goto10859
+06A7  drv_gpio_submenu_tiempo
+00E1  @const325
+00E6  @const326
+00EA  @const328
+00EE  @const329
+00F3  @const331
+00F8  @const332
+00FC  @const334
+0100  @const335
+070E  @goto10921
+0638  drv_gpio_submenu_nivel
+0105  @const338
+010B  @const339
+010E  @const341
+0113  @const342
+0117  @const344
+011B  @const345
+011E  @const347
+0122  @const348
+069F  @goto10982
+05EB  drv_gpio_submenu_temp
+0126  @const351
+012A  @const352
+012F  @const354
+0132  @const355
+0138  @const357
+05D7  drv_gpio_back
+05CB  drv_gpio_clear
+07B4  drv_gpio_finish1
+0767  drv_gpio_finish0
+0294  drv_gpio_off
+07C7  drv_gpio_off_nf_ON
+0C9B  drv_gpio_NF
+0BCE  drv_gpio_STF
+0BF4  drv_gpio_STR
+0BF6  drv_gpio_RM
+0C79  drv_gpio_BomExt
+0C8D  drv_gpio_BomExt_STF
+0A52  drv_gpio_Solenoide12
+0AA1  drv_gpio_lavado
+0B01  drv_gpio_enjuague
+029F  @ITOF
+02BC  @MULFF
+0331  @SFTOI
+0B01  drv_gpio_centrifugado
+0CE1  drv_gpio_automatico2
+0952  drv_gpio_control_time
+0140  @const365
+0385  @PSTRINGCN7_93
+0404  @DIV88
+03D3  @PRINTF_D_93
+0149  @const374
+0940  drv_gpio_seg
+0152  @const378
+015B  @const379
+0800  drv_gpio_pulsadores
+0926  drv_gpio_ticks
+045F  drv_gpio_mode_time
+0162  @const380
+016B  @const381
+0172  @const382
+052B  drv_gpio_adc_read
+017C  @const385
+0184  @const397
+0A06  drv_gpio_level
+0C3D  @MUL1616
+0560  @DIV1616
+0C2D  drv_gpio_vaciar
+09FC  drv_gpio_test_nivel
+018C  Rb4_Rb7_ISR
+0190  RB0_ISR
+0194  timer1_isr
+0CAC  MAIN
+0222  main_config
+0CAC  @cinit
+0A9F  fin
+
+
+User Memory space: 
+
+User Memory space: 
+
+Project Directory:
+    C:\Users\wplanchez\Desktop\Mecatronica Consultores\PROYECTOS\Controlador Digital\Rar\22_VERSION_ESTABLE\FW\
+
+Project Files:
+    main.c
+    system.h
+    ..\..\..\..\..\..\..\..\..\Program Files (x86)\PICC\devices\16f877a.h
+    ..\..\..\..\..\..\..\..\..\Program Files (x86)\PICC\drivers\LCD.c
+    mensajes.h
+    mensajes.c
+    ..\..\..\..\..\..\..\..\..\Program Files (x86)\PICC\drivers\string.h
+    ..\..\..\..\..\..\..\..\..\Program Files (x86)\PICC\drivers\stddef.h
+    ..\..\..\..\..\..\..\..\..\Program Files (x86)\PICC\drivers\ctype.h
+    drv_lcd.h
+    drv_lcd.c
+    drv_gpio.h
+    drv_gpio.c
+
+Units:
+    C:\Users\wplanchez\Desktop\Mecatronica Consultores\PROYECTOS\Controlador Digital\Rar\22_VERSION_ESTABLE\FW\main (main)
+
+Compiler Settings:
+    Processor:      PIC16F877A
+    Pointer Size:   16
+    ADC Range:      0-1023
+    Opt Level:      9
+    Short,Int,Long: UNSIGNED: 1,8,16
+    Float,Double:   32,32
+
+Output Files:
+    Errors:      main.err
+    Ext Symbols: main.esym
+    INHX8:       main.hex
+    Symbols:     main.sym
+    List:        main.lst
+    Debug/COFF:  main.cof
+    Project:     main.PJT
+    Call Tree:   main.tre
+    Statistics:  main.sta
