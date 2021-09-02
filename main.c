@@ -29,22 +29,9 @@ void timer1_isr(void)
    timetm1++;     
 }
 
-/*
-#int_timer2
-void timer2_isr(void)
-{
-
-   if(Flag_RM ==1){
-      output_toggle(RH); 
-   }
-   
-}
-*/
-
 void main(){
 
    main_config(); // Configuracion inicial
-   //drv_lcd_show();
 
    Flag_btn_inicio = 1;
    Flag_sub_menu0 = 1; 
@@ -55,43 +42,6 @@ void main(){
    output_bit(SOLENOIDE3,0);
    output_bit(RH,0);
    
-   
-   
-///////////////////////////////////////////////      
-
-   /* PLAN B
-   main_config();
-   drv_gpio_off();
-   drv_gpio_clear();
-   
-   output_bit(SOLENOIDE3,0);
-   output_bit(RH,0);
-   
-   Flag_btn_inicio = 1;
-   Flag_sub_menu0 = 1; 
-   Flag_salir = 1;
-   Status_modo = SIN_MODO ;
-   */
-   
-///////////////////////////////////////////////   
-   
-   //drv_gpio_clear();
-   //Flag_sub_menu0 = 1;
-   //Flag_ejecutar = 0;
-   //Status_opcion = 0;
-   
-   //Flag_btn_inicio = 1;
-   //Flag_sub_menu0 = 1; 
-   //Flag_salir = 1;
-   //Status_modo = SIN_MODO ;
-   
-   //output_c(0b00000000);
-   //output_e(0b00000000);
-   //drv_gpio_off();
-   //drv_gpio_clear();
-   //drv_gpio_adc_lcd();
-   //Status_modo = MODO_INICIO;
-
    while(1){
          
       switch(Status_modo){
@@ -112,11 +62,11 @@ void main(){
             break;
             
            case MODO_INICIO:
-               /*
-               if(Flag_sub_menu0 == 0){
-               drv_gpio_pulsadores();
-               delay_ms(100);}
-               */
+		   /*
+			if(Flag_sub_menu0 == 0){
+				drv_gpio_pulsadores();
+				delay_ms(100);}
+		   */
             break;
             
           default:
