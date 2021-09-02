@@ -94,29 +94,9 @@ void drv_gpio_int_rb(){
          drv_gpio_clear();
          Flag_salir =1;
 
-            
-         //if(Flag_sub_menu0 == 1 || Flag_sub_menu1 == 1){
-            //drv_gpio_back();
-            //Status_modo=0;
-        // }
-         
-         //else{
-         //drv_gpio_mode_time();
-         
-         /*
-         if(Status_modo == SIN_MODO) {
-            printf(lcd_putc,"\f    <<STOP>>\n");drv_gpio_off();
-         }
-         
-         else{   
-            lcd_gotoxy(1,2);
-            printf(lcd_putc,"    <<STOP>>\n");drv_gpio_off();
-         }
-         */
          Status_modo = SIN_MODO ;
          drv_gpio_off();
 
-        //}
       }
    
       if (input(BTN_SUBIR_MENU)==0){
@@ -245,13 +225,10 @@ void drv_gpio_menu0(){
             printf(lcd_putc,"\f");
             printf(lcd_putc,AUTOM);
             printf(lcd_putc,LAVADO_);
-            // printf(lcd_putc,LAVADO);
-            //printf(lcd_putc,CENTRIFUGADO_);
             
             if(Flag_ejecutar == 1){
                drv_gpio_finish0();
                Status_modo = MODO_LAVADO ;
-               //Status_modo = MODO_CENTRIFUGADO;
                drv_gpio_mode_time();
                drv_gpio_clear();                      
             }
@@ -310,9 +287,6 @@ void drv_gpio_menu0(){
 }
 
 void drv_gpio_submenu_tiempo(){
-
-   //if((Flag_sub_menu1 == 1) && (Flag_rb0) == 0){
-   //if(Flag_sub_menu1 == 1){
    
       switch(Status_opcion1){
       
@@ -466,7 +440,7 @@ void drv_gpio_back(){
          Status_nivel = 0;
          //Status_Opcion = 0;
          Status_opcion1 = 0;
-         Flag_btn_inicio = 1;//Flag_menu = 1;
+         Flag_btn_inicio = 1;
          Flag_sub_menu1 = 0;
          Flag_sub_menu0 = 1;
          //drv_gpio_menu0();
@@ -475,10 +449,7 @@ void drv_gpio_back(){
       case 2:
          Status_nivel = 1;
          Status_Opcion1 = 0;
-         //Status_Opcion2 = 0;
-         //Flag_sub_menu2 = 0;
          Flag_sub_menu1 = 1;
-         //drv_gpio_menu1();
          break;
    } 
 }
@@ -520,10 +491,7 @@ void drv_gpio_off(){
 }
 
 void drv_gpio_off_nf_ON(){
-   //output_c(0b01000000); 
    output_e(0b00000000);  
-   //output_bit(SOLENOIDE1,0);
-   //output_bit(SOLENOIDE2,0);
    output_bit(SOLENOIDE3,0);
    output_bit(SOLENOIDE4,0);
    output_bit(STF,0);
@@ -538,31 +506,20 @@ void drv_gpio_NF(){
 }
 
 void drv_gpio_STF(){
-   //printf(lcd_putc,"\fROTACION ADELANTE\n");
-   //output_c(0b00000000);
-   //output_e(0b00000000); 
    output_bit(SOLENOIDE3,0);
    output_bit(STF,1);
-   //set_pwm1_duty(5);
 }
 
 void drv_gpio_STR(){
-   //printf(lcd_putc,"\fROTACION ATRAS\n");
-   //output_c(0b00000000);
-   //output_e(0b00000000); 
+ 
    output_bit(SOLENOIDE3,0);
    output_bit(STR,1);
-   
-   //set_pwm1_duty(5);
 
 }
 void drv_gpio_RH(){
-  //printf(lcd_putc,"\fVELOCIDAD ALTA\n");
-  set_pwm1_duty(34);
-  //output_e(0b00000000);
-  
-   //output_c(0b00000000);
-   //output_e(0b00000000); 
+
+   set_pwm1_duty(34);
+ 
    output_bit(SOLENOIDE3,0);
    ////output_bit(RH,1);
    Flag_RH = 0;
@@ -572,37 +529,24 @@ void drv_gpio_RH(){
 
 void drv_gpio_RM(){
   //printf(lcd_putc,"\fVELOCIDAD MEDIA\n");
-  set_pwm1_duty(17);//21
-  //output_e(0b00000000);
-  
-   //output_c(0b00000000);
-   //output_e(0b00000000); 
-   output_bit(SOLENOIDE3,0);
-   //output_bit(RH,1);
-   
+   set_pwm1_duty(17);//21
+   output_bit(SOLENOIDE3,0);  
    Flag_RM = 1;
-   //Flag_RM = 1;
 }
 
 void drv_gpio_SolComp(){
-  //output_c(0b00000000);
-  //output_e(0b00000000);
   output_bit(SOLENOIDE3,0);
   output_bit(SOL_COMPUERTA,1);
   set_pwm1_duty(5);
 }
 
 void drv_gpio_BomExt(){
-  //output_c(0b00000000);
-  //output_e(0b00000000);
   output_bit(SOLENOIDE3,0);
   output_bit(BOMB_EXTRACCION,1);
   ////set_pwm1_duty(5);
 }
 
 void drv_gpio_BomExt_STF(){
-   //output_c(0b00000000); 
-   //output_e(0b00000000);
    output_bit(SOLENOIDE3,0);
    output_bit(STF,1);
    output_bit(BOMB_EXTRACCION,1);
@@ -610,16 +554,9 @@ void drv_gpio_BomExt_STF(){
    set_pwm1_duty(315);
    Flag_RH = 1;
    Flag_RM = 0;
-
-   //output_e(0b00000010); // Bomba de Extraccion
-   //set_pwm1_duty(400);   // RH
-   //set_pwm1_duty(5);
 }
 
 void drv_gpio_Solenoide12(){
-  //output_c(0b00110000);
-  //output_c(0b00000000);
-  //output_e(0b00000000);
   output_bit(SOLENOIDE3,0);
   output_bit(SOLENOIDE1,1);
   output_bit(SOLENOIDE2,1);
@@ -627,9 +564,6 @@ void drv_gpio_Solenoide12(){
 }
 
 void drv_gpio_Solenoide34(){
-  //output_c(0b11000000);
-  //output_c(0b00000000);
-  //output_e(0b00000000);
   
   output_bit(SOLENOIDE3,1);
   output_bit(SOLENOIDE4,1);
@@ -639,27 +573,9 @@ void drv_gpio_Solenoide34(){
 
 void drv_gpio_lavado(){
 
-   //if(Flag_salir != 1){drv_gpio_Solenoide12(); drv_gpio_seg(20,true);}
-   //if(Flag_salir != 1){while(drv_gpio_level(50)==0){drv_gpio_Solenoide12();drv_gpio_seg(1,true);}}
-   
-   /*
-   while(drv_gpio_level(Status_agua)==0 && Flag_salir != 1){
-      drv_gpio_Solenoide12();
-      drv_gpio_seg(1,true);
-   }
-   drv_gpio_off();
-   */
-   
-   //if(Flag_salir != 1){while(drv_gpio_level(NIVEL_MEDIO)==0){drv_gpio_Solenoide12();drv_gpio_seg(1,true);}}
-   //if(Flag_salir != 1){while(drv_gpio_level(Status_agua)==0){drv_gpio_Solenoide12();drv_gpio_seg(1,true);}}
-   //min2 = 0;
-   //T_lavado = Status_tiempo*0.4;
    Status_fase = FASE_LAVADO;
    ///drv_gpio_NF();
    
-   ////for(minutos = 0; minutos<T_lavado;minutos++){ 
-   
-      ////for(Flag_ciclo = 0;Flag_ciclo<2;Flag_ciclo++)//{
    while(min<T_lavado && Flag_salir != 1){
       if(Flag_salir != 1){drv_gpio_STF()           ; drv_gpio_RM();drv_gpio_seg(5,true); }
       if(Flag_salir != 1){drv_gpio_off_nf_ON()     ;while(Flag_rotacion == 0){drv_gpio_off_nf_ON();drv_gpio_seg(1,true);}}//drv_gpio_seg(6,true);}
@@ -671,9 +587,6 @@ void drv_gpio_lavado(){
          
       if(Flag_salir != 1){drv_gpio_off_nf_ON()     ; drv_gpio_seg(2,true);}
    }
-       ////}  
-   ////}
-   
 
    
    if(Status_modo==MODO_LAVADO){
@@ -736,24 +649,13 @@ void drv_gpio_enjuague(){
          // Se abre la bomba de agua hasta que el nivel de agua sea cero    
       while(drv_gpio_vaciar(SIN_NIVEL)==0 && Flag_salir != 1){drv_gpio_NF();drv_gpio_BomExt();drv_gpio_seg(1,true);}
       // se apaga la bomba de extraccion
-      //if(Flag_salir != 1){drv_gpio_off();} 
-      
-      // Se llena hasta el nivel indicado
-      // while(drv_gpio_level(Status_agua0) && Flag_salir != 1){
-      
-      /*
-      while(drv_gpio_level(Status_agua)==0 && Flag_salir != 1){
-         drv_gpio_Solenoide12();
-         drv_gpio_seg(1,true);
-      }
-      
-      drv_gpio_off();
-      */
+
       
       // T_lavado = Status_tiempo*0.4
       // T_centrifugado = Status_tiempo*0.15;
       // T_enjuague = Status_tiempo*0.45;
-      ////T_enjuague = Status_tiempo*0.15;
+      // T_enjuague = Status_tiempo*0.15;
+	  
       Status_fase = FASE_LAVADO;
       
       drv_gpio_off_nf_ON();
@@ -777,10 +679,6 @@ void drv_gpio_enjuague(){
 
 
 void drv_gpio_centrifugado(){
-
-   //if(Flag_salir != 1){drv_gpio_BomExt(); drv_gpio_seg(10,true);}//if(Flag_salir == 1);break;
-   //if(Flag_salir != 1){drv_gpio_off();} 
-   //if(Flag_salir != 1){while(drv_gpio_vaciar(SIN_NIVEL)==0){drv_gpio_BomExt();drv_gpio_seg(1,true);}}
    
    drv_gpio_enjuague();
    
@@ -800,8 +698,6 @@ void drv_gpio_centrifugado(){
    
    //T_centrifugado = (Status_tiempo*0.15) + 1;
    
-   ////for(minutos = 0; minutos<T_centrifugado;minutos++){
-     //if(Flag_salir != 1){ drv_gpio_STF(); drv_gpio_RH();   drv_gpio_seg(60,true);}drv_gpio_BomExt_STF()
    while(min<T_ciclo && Flag_salir != 1){
      output_bit(SOLENOIDE1,0);
      output_bit(SOLENOIDE2,0);
@@ -828,24 +724,12 @@ void drv_gpio_automatico2(){
 
 void drv_gpio_automatico(){
 
-   ///////////////////////////////////////////////////////////////////
-   //LAVADO
-   //while(drv_gpio_level(Status_agua) && Flag_salir != 1){
-   
-   /*
-   while(drv_gpio_level(Status_agua)==0 && Flag_salir != 1){
-      drv_gpio_Solenoide12();
-      drv_gpio_seg(1,true);
-   }
-   drv_gpio_off();
-   */
-   
-   //if(Flag_salir != 1){while(drv_gpio_level(NIVEL_MEDIO)==0){drv_gpio_Solenoide12();drv_gpio_seg(1,true);}}
-   //if(Flag_salir != 1){while(drv_gpio_level(Status_agua)==0){drv_gpio_Solenoide12();drv_gpio_seg(1,true);}}
+
    drv_gpio_NF();
-   ////min2 = 0;
+
    T_lavado = Status_tiempo*0.4;
    Status_fase = FASE_LAVADO;
+   
    /*
    #define FASE_LAVADO           1 // 
    #define FASE_ENJUAGUE         2 // 
@@ -871,16 +755,10 @@ void drv_gpio_automatico(){
       }
    }
    //FIN LAVADO
-   ///////////////////////////////////////////////////////////////////
-   
-   ///////////////////////////////////////////////////////////////////
-   //min2 = 0;
+
    drv_gpio_enjuague();
-   ///////////////////////////////////////////////////////////////////
-   
-   ///////////////////////////////////////////////////////////////////
+
    //CENTRIGUGADO
-   //min2 = 0;
    
    Status_fase = SIN_FASE;
    
@@ -894,9 +772,8 @@ void drv_gpio_automatico(){
      if(Flag_salir != 1){ drv_gpio_BomExt_STF();drv_gpio_NF();   drv_gpio_seg(60,true);}
      else{break;}//if(Flag_salir == 1);break;
    } 
-   //drv_gpio_centrifugado();
+
    //FIN CEBTRIGUGADO
-   ///////////////////////////////////////////////////////////////////
    
    Flag_salir = 0;   
    drv_gpio_SolComp();
@@ -915,29 +792,6 @@ void drv_gpio_control_time(){
       //min2++;
       seg = 0;
    }
-   
-
-   // Si pasan 5min y no se llega al nivel de agua muestra 
-   // FALLA EN SUMINISTRO DE AGUA
-   //if(min == 5 && drv_gpio_level(50)==0){
-   ////if((min2 == 100 && drv_gpio_level(Status_agua)==0)&&(Status_modo==MODO_LAVADO || Status_modo== MODO_AUTOMATICO || Status_fase == FASE_LAVADO)){
-   /*
-      printf(lcd_putc,"\fFALLA SUMINISTRO",);
-      lcd_gotoxy(1,2);
-      printf(lcd_putc,"    DE AGUA\n");
-      drv_gpio_off();
-      //Flag_salir =1 ;     
-      */
-   ////}
-   
-   ////else{
-   
-      ////////////////////////////////////////////////////////
-      // Si se cumple el tiempo seleccionado Activa el Flag salir y apaga todas
-      // Las Salidas
-      //if(Status_modo == MODO_LAVADO && min == T_lavado){Flag_salir =1;drv_gpio_off();output_bit(SOLENOIDE3,0);output_bit(RH,0);}
-      //if(Status_modo == MODO_CENTRIFUGADO && min == Status_tiempo_cent){Flag_salir =1;drv_gpio_off();output_bit(SOLENOIDE3,0);output_bit(RH,0);}
-      //if(min == Status_tiempo){Flag_salir =1;drv_gpio_off();output_bit(SOLENOIDE3,0);output_bit(RH,0);}
       
       switch(Status_modo){
       
@@ -951,19 +805,6 @@ void drv_gpio_control_time(){
             if(min == Status_tiempo_cent){Flag_salir =1;drv_gpio_off();}
             break;
       }
-      /*
-      if(Status_modo == MODO_AUTOMATICO && min == Status_tiempo){
-         Flag_salir =1;drv_gpio_off();output_bit(SOLENOIDE3,0);
-      }
-      else if(Status_modo == MODO_LAVADO && min == Status_tiempo){
-      T_ciclo == T_enjuague;
-         }
-      else if(Status_modo == MODO_CENTRIFUGADO){
-      T_ciclo == T_enjuague;
-         }
-         
-      */
-      ////////////////////////////////////////////////////////
       
       lcd_gotoxy(1,2);
       
@@ -1073,12 +914,6 @@ void drv_gpio_mode_time(){
          break;
          
       case MODO_CENTRIFUGADO:
-         //Status_tiempo = 15;
-         //printf(lcd_putc,"\f<<CENTRIFUGADO>>\n"); 
-         //T_centrifugado = Status_tiempo*0.6;
-         //Status_tiempo = T_centrifugado;
-         //Status_tiempo_cent = T_centrifugado;
-         //Status_tiempo_cent = Status_tiempo*0.6;
          printf(lcd_putc,"\fCENTRIFUGADO:%dm\n",Status_tiempo_cent); 
          break;
               
@@ -1093,10 +928,10 @@ int16 drv_gpio_adc_read(int channel){
    int16 medicion=0;                     //variable entera que contendra la medicion del convertidor AD
    int1 done = 0;                        //Contendra 1 si el convertidor terminó de convertir
    
-   setup_adc_ports(AN0_AN1_AN3); // CANALES ANALOGICOS AN0 AN1 Y AN3
-   setup_adc(ADC_CLOCK_INTERNAL); // conversion analogica con el reloj interno
-   set_adc_channel (channel);          //Establecemos el canal de lectura analogica
-   delay_ms(1);                       //a small delay is required after setting the channel
+   setup_adc_ports(AN0_AN1_AN3); 		// CANALES ANALOGICOS AN0 AN1 Y AN3
+   setup_adc(ADC_CLOCK_INTERNAL); 		// conversion analogica con el reloj interno
+   set_adc_channel (channel);          	//Establecemos el canal de lectura analogica
+   delay_ms(1);                       	//a small delay is required after setting the channel
    medicion=read_adc ();               // Hace conversión AD 
    done = adc_done();                  //done = 1 si el convertidor termino de convertir
    while(!done)
@@ -1191,24 +1026,3 @@ void drv_gpio_test_nivel(){
       
 }
 
-///////////////////////////////////////////////////////////////////////////////
-
-/*
-   #define SIN_MODO              0
-   #define MODO_AUTOMATICO       1
-   #define MODO_LAVADO           2
-   #define MODO_CENTRIFUGADO     3
-   
-      #define FASE_LAVADO        1 // 
-   #define FASE_ENJUAGUE         2 // 
-   #define FASE_CENTRIFUGADO     3 // 
-   
-   
-   
-int T_lavado,T_enjuague,T_centrifugado;
-
-T_lavado = Status_tiempo*0.4
-T_centrifugado = Status_tiempo*0.15;
-T_enjuague = Status_tiempo*0.45
-
-*/
